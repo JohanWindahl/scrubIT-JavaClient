@@ -72,7 +72,6 @@ public class Product {
 
         System.out.println(cola);
         System.out.println(bebzi);
-
     }
 
 
