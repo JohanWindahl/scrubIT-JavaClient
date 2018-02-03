@@ -9,7 +9,9 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.control.cell.TextFieldTableCell;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.json.*;
+import org.json.JSONObject;
 
 import javafx.application.Application;
 import javafx.geometry.Pos;
@@ -142,7 +144,11 @@ public class Main extends Application {
         setButton.setTranslateY(exitButton.getTranslateY());
         setButton.setOnAction(e -> {
             label.setText("Setting data...");
-            doSetData();
+            try {
+                doSetData();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
         });
 
         getButton = new Button();
@@ -223,7 +229,59 @@ public class Main extends Application {
     }
 
 
-    private void doSetData() {
+    private void doSetData() throws IOException {
+        JSONArray jsonArr = new JSONArray();
+        for (int i=0;i<data.size();i++) {
+            JSONObject obj = new JSONObject();
+            System.out.println(i);
+            String id = data.get(i).getId();
+            String name = data.get(i).getName();
+            String price = data.get(i).getPrice();
+            String stock = data.get(i).getStock();
+
+            obj.put("id",id);
+            obj.put("name",name);
+            obj.put("price",price);
+            obj.put("stock",stock)
+            ;
+            jsonArr.put(obj);
+        }
+        System.out.println("Creating JSON: ");
+        System.out.println(jsonArr);
+        System.out.println("Sending JSON: ");
+
+        String json = jsonArr.toString();
+
+        String url1 = "https://gurujsonrpc.appspot.com/guru";
+        String url2 = "https://httpbin.org/post";
+        String url3 = "http://ptsv2.com/t/naye5-1517696027/post";
+
+        URL obj = new URL(url3);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setDoOutput(true);
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/json");
+
+        OutputStream os = con.getOutputStream();
+
+        BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(os, "UTF-8"));
+        writer.write(json);
+
+        writer.flush();
+        writer.close();
+        os.close();
+
+
+        int responseCode = con.getResponseCode();
+
+        if (responseCode==200) {
+            label.setText("Request succeeded");
+        }
+        else {
+            label.setText("Connection unsuccessful, Response: " +  responseCode);
+        }
+        System.out.println(responseCode);
 
     }
 
@@ -265,7 +323,7 @@ public class Main extends Application {
             label.setText("Request succeeded");
         }
         else {
-            label.setText("Connection not successful, Response: " +  responseCode);
+            label.setText("Connection unsuccessful, Response: " +  responseCode);
         }
 
         BufferedReader in = new BufferedReader(
@@ -279,7 +337,8 @@ public class Main extends Application {
         }
 
         JSONArray jsonObj = new JSONArray(response.toString());
-
+        System.out.println(response);
+        System.out.println(jsonObj);
 
         for (int i=0;i<10;i++) {
         //for (int i=0;i<jsonObj.length();i++) {
