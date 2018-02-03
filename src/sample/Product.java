@@ -1,21 +1,21 @@
 package sample;
 
 public class Product {
-    Integer Id;
+    String Id;
     String Name;
-    Integer Stock;
-    Integer Price;
+    String Stock;
+    String Price;
 
-    public Product(Integer i, String n, Integer s, Integer p) {
+    public Product(String i, String n, String s, String p) {
         this.Id = i;
         this.Name = n;
         this.Stock = s;
         this.Price = p;
     }
 
-    public Integer getId() {return Id;}
+    public String getId() {return Id;}
 
-    public void setId(Integer id) {Id = id;}
+    public void setId(String id) {Id = id;}
 
     public String getName() {
         return Name;
@@ -25,19 +25,19 @@ public class Product {
         this.Name = name;
     }
 
-    public Integer getStock() {
+    public String getStock() {
         return Stock;
     }
 
-    public void setStock(Integer stock) {
+    public void setStock(String stock) {
         Stock = stock;
     }
 
-    public Integer getPrice() {
+    public String getPrice() {
         return Price;
     }
 
-    public void setPrice(Integer price) {
+    public void setPrice(String price) {
         Price = price;
     }
 
@@ -53,8 +53,8 @@ public class Product {
 
     public static void main(String[] args) {
 
-        Product cola = new Product(1,"Cola",120,12);
-        Product bebzi = new Product(2,"Pepsi Max",99,12);
+        Product cola = new Product("1","Cola","120","12");
+        Product bebzi = new Product("2","Pepsi Max","99","12");
 
         System.out.println(cola);
         System.out.println(bebzi);
@@ -70,12 +70,12 @@ public class Product {
 
 
         cola.setName("Cola Zero");
-        cola.setPrice(9);
-        cola.setStock(0);
+        cola.setPrice("2");
+        cola.setStock("3");
 
         bebzi.setName("Pepsi");
-        bebzi.setPrice(13);
-        bebzi.setStock(0);
+        bebzi.setPrice("13");
+        bebzi.setStock("2");
 
         System.out.println(cola);
         System.out.println(bebzi);

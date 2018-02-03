@@ -1,9 +1,14 @@
 package sample;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
+import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldListCell;
+import javafx.scene.control.cell.TextFieldTableCell;
 import org.json.*;
 
 import javafx.application.Application;
@@ -30,12 +35,12 @@ public class Main extends Application {
 
     ObservableList<Product> data =
             FXCollections.observableArrayList(
-                    new Product(1,"Mock Cola",120,12),
-                    new Product(2,"Mock Pepsi Max",99,12)
+                    new Product("1","Mock Cola","120","12"),
+                    new Product("2","Mock Pepsi Max","99","21")
             );
 
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage primaryStage) {
         //Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         primaryStage.setTitle("scrubITadmin");
 
@@ -44,26 +49,83 @@ public class Main extends Application {
         table.setTranslateY(-75);
         table.setMaxHeight(550);
 
-        TableColumn tc_id = new TableColumn("ID");
-        tc_id.setCellValueFactory(
-                new PropertyValueFactory<Product, Integer>("Id"));
 
-        TableColumn tc_name = new TableColumn("Name");
+
+        TableColumn<Product, String> tc_name = new TableColumn<>("Name");
         tc_name.setMinWidth(300);
         tc_name.setCellValueFactory(
-                new PropertyValueFactory<Product, String>("Name"));
+                new PropertyValueFactory<Product,String>("Name")
+        );
+        tc_name.setCellFactory(TextFieldTableCell.forTableColumn());
 
-        TableColumn tc_price = new TableColumn("Price");
+        tc_name.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
+            @Override
+            public void handle(CellEditEvent<Product,String> t) {
+                ((Product) t.getTableView().getItems().get(
+                        t.getTablePosition().getRow())
+                ).setName(t.getNewValue());
+            }
+        });
+
+        TableColumn<Product, String> tc_id = new TableColumn<>("Id");
+        tc_id.setMinWidth(100);
+        tc_id.setCellValueFactory(
+                new PropertyValueFactory<Product,String>("Id")
+        );
+        tc_id.setCellFactory(TextFieldTableCell.forTableColumn());
+
+        tc_id.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
+            @Override
+            public void handle(CellEditEvent<Product,String> t) {
+                ((Product) t.getTableView().getItems().get(
+                        t.getTablePosition().getRow())
+                ).setId(t.getNewValue());
+            }
+        });
+
+
+        TableColumn<Product, String> tc_price = new TableColumn<>("Price");
         tc_price.setMinWidth(100);
         tc_price.setCellValueFactory(
-                new PropertyValueFactory<Product, Integer>("Price"));
+                new PropertyValueFactory<Product,String>("Price")
+        );
+        tc_price.setCellFactory(TextFieldTableCell.forTableColumn());
 
-        TableColumn tc_stock = new TableColumn("Stock");
+        tc_price.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
+            @Override
+            public void handle(CellEditEvent<Product,String> t) {
+                ((Product) t.getTableView().getItems().get(
+                        t.getTablePosition().getRow())
+                ).setPrice(t.getNewValue());
+            }
+        });
+
+        TableColumn<Product, String> tc_stock = new TableColumn<>("Stock");
         tc_stock.setMinWidth(100);
         tc_stock.setCellValueFactory(
-                new PropertyValueFactory<Product, Integer>("Stock"));
-        table.getColumns().addAll(tc_id, tc_name, tc_price, tc_stock);
+                new PropertyValueFactory<Product,String>("Stock")
+        );
+        tc_stock.setCellFactory(TextFieldTableCell.forTableColumn());
+
+        tc_stock.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
+            @Override
+            public void handle(CellEditEvent<Product,String> t) {
+                ((Product) t.getTableView().getItems().get(
+                        t.getTablePosition().getRow())
+                ).setStock(t.getNewValue());
+            }
+        });
+
+        table.getColumns().addAll(tc_id,tc_name, tc_price, tc_stock);
         table.setItems(data);
+
+        table.setOnMouseClicked(e -> {
+            TablePosition cell = table.getFocusModel().getFocusedCell();
+            table.setEditable(true);
+            table.edit(cell.getRow(),cell.getTableColumn());
+
+        });
+
 
         exitButton = new Button();
         exitButton.setText("Exit");
@@ -160,21 +222,22 @@ public class Main extends Application {
         primaryStage.show();
     }
 
+
     private void doSetData() {
 
     }
 
     private void addProduct() {
         try {
-            Integer id = Integer.parseInt(tf_id.getText());
+            String id = tf_id.getText();
             String name = tf_name.getText();
-            Integer stock = Integer.parseInt(tf_stock.getText());
-            Integer price = Integer.parseInt(tf_price.getText());
+            String stock = tf_stock.getText();
+            String price = tf_price.getText();
             Product newProduct = new Product(id,name,stock,price);
 
             boolean doAdd = true;
             for (int i = 0;i<data.size();i++) {
-                if (id == data.get(i).getId()) {
+                if (id.equals(data.get(i).getId())) {
                     label.setText("ID already exists");
                     doAdd = false;
                 }
@@ -220,10 +283,10 @@ public class Main extends Application {
 
         for (int i=0;i<10;i++) {
         //for (int i=0;i<jsonObj.length();i++) {
-            Integer id = (Integer)jsonObj.getJSONObject(i).get("id");
-            String name = (String)jsonObj.getJSONObject(i).get("title");
-            Integer stock = (Integer)jsonObj.getJSONObject(i).get("userId");
-            Integer price = (Integer)jsonObj.getJSONObject(i).get("userId");
+            String id = jsonObj.getJSONObject(i).get("id").toString();
+            String name = jsonObj.getJSONObject(i).get("title").toString();
+            String stock = jsonObj.getJSONObject(i).get("userId").toString();
+            String price = jsonObj.getJSONObject(i).get("userId").toString();
 
             Product test = new Product(id,name,stock,price);
             data.add(test);
@@ -234,9 +297,7 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-
-
-    }
+}
 
 
 
