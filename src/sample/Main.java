@@ -16,68 +16,51 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import java.net.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-
 
 public class Main extends Application {
     Button getButton;
     Button setButton;
     Button exitButton;
     Label label;
+    StackPane layout;
     TableView table;
-
+    ObservableList<Product> data =
+            FXCollections.observableArrayList(
+                    new Product(1,"Mock Cola",120,12),
+                    new Product(2,"Mock Pepsi Max",99,12)
+            );
 
     @Override
     public void start(Stage primaryStage) throws Exception{
         //Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
-        primaryStage.setTitle("scrub IT");
+        primaryStage.setTitle("scrubITadmin");
 
         table = new TableView();
         TableView<Product> table = new TableView<>();
         table.setEditable(true);
+        table.setTranslateY(-25);
+        table.setMaxHeight(550);
 
         TableColumn id = new TableColumn("ID");
         id.setCellValueFactory(
                 new PropertyValueFactory<Product, Integer>("Id"));
 
         TableColumn name = new TableColumn("Name");
+        name.setMinWidth(300);
         name.setCellValueFactory(
                 new PropertyValueFactory<Product, String>("Name"));
 
         TableColumn price = new TableColumn("Price");
+        price.setMinWidth(100);
         price.setCellValueFactory(
                 new PropertyValueFactory<Product, Integer>("Price"));
 
         TableColumn stock = new TableColumn("Stock");
+        stock.setMinWidth(100);
         stock.setCellValueFactory(
                 new PropertyValueFactory<Product, Integer>("Stock"));
-
         table.getColumns().addAll(id, name, price, stock);
-
-        name.setMinWidth(300);
-        price.setMinWidth(100);
-        stock.setMinWidth(100);
-        table.setTranslateY(-25);
-        table.setMaxHeight(550);
-
-        ObservableList<Product> data =
-            FXCollections.observableArrayList(
-                    new Product(1,"Cola",120,12),
-                    new Product(2,"Pepsi Max",99,12)
-            );
         table.setItems(data);
-
-        System.out.println(data);
-
-
-
-
-
-
-
-
-
 
         exitButton = new Button();
         exitButton.setText("Exit");
@@ -105,8 +88,7 @@ public class Main extends Application {
         getButton.setTranslateY(setButton.getTranslateY());
         getButton.setOnAction(e -> {
             System.out.println("Getting data...");
-            label.setText("Getting data...");
-            try {
+             try {
                 doGetData();
             } catch (IOException e1) {
                 e1.printStackTrace();
@@ -114,10 +96,9 @@ public class Main extends Application {
         });
 
         label = new Label();
-        label.setText("label text");
         label.setTranslateY(getButton.getTranslateY());
 
-        StackPane layout = new StackPane();
+        layout = new StackPane();
         layout.getChildren().addAll(getButton, setButton,exitButton,label,table);
         layout.setAlignment(Pos.CENTER);
 
@@ -132,69 +113,54 @@ public class Main extends Application {
     }
 
     private void doGetData() throws IOException {
+        label.setText("Getting data...");
 
-        /*
-        URL url = null;
-
-        try {
-            url = new URL("https://jsonplaceholder.typicode.com/posts");
-
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-        BufferedReader in = null;
-        try {
-            in = new BufferedReader(
-                    new InputStreamReader(url.openStream()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        String inputLine2;
-        if (in != null) {
-            while ((inputLine2 = in.readLine()) != null) {
-                //System.out.println(inputLine);
-            }
-        }
-        try {
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        JSONObject jsonObject = new JSONObject(url);
-        System.out.println(jsonObject);
-
-        */
-        JSONObject obj2 = new JSONObject("{interests : [{interestKey:Dogs}, {interestKey:Cats}]}");
-        System.out.println(obj2);
-        List<String> list = new ArrayList<String>();
-        JSONArray array = obj2.getJSONArray("interests");
-        for (int i = 0; i < array.length(); i++) {
-            list.add(array.getJSONObject(i).getString("interestKey"));
-        }
-        System.out.println(list);
-        String url2 = "https://jsonplaceholder.typicode.com/users";
-        URL obj = new URL(url2);
+        String urlToJson = "https://jsonplaceholder.typicode.com/todos";
+        URL obj = new URL(urlToJson);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-
         con.setRequestMethod("GET");
         int responseCode = con.getResponseCode();
-        System.out.println("Sending GET to url");
-        System.out.println("ResponseCode=" +  responseCode);
+
+        if (responseCode==200) {
+            data.clear();
+            label.setText("Request succeeded");
+        }
+        else {
+            label.setText("Connection not successful, Response: " +  responseCode);
+        }
+
         BufferedReader in = new BufferedReader(
                 new InputStreamReader(con.getInputStream()));
         String inputLine;
-        StringBuffer response = new StringBuffer();
+        StringBuilder response = new StringBuilder();
 
         while ((inputLine = in.readLine()) != null) {
             response.append(inputLine);
+            response.append("\n");
         }
-        System.out.print(response);
+
+        JSONArray jsonObj = new JSONArray(response.toString());
 
 
+        for (int i=0;i<10;i++) {
+        //for (int i=0;i<jsonObj.length();i++) {
+            Integer id = (Integer)jsonObj.getJSONObject(i).get("id");
+            String name = (String)jsonObj.getJSONObject(i).get("title");
+            Integer stock = (Integer)jsonObj.getJSONObject(i).get("userId");
+            Integer price = (Integer)jsonObj.getJSONObject(i).get("userId");
+
+            Product test = new Product(id,name,stock,price);
+            data.add(test);
+        }
+        table.setItems(data);
     }
     public static void main(String[] args) {
         launch(args);
     }
 
-}
+
+    }
+
+
+
+
