@@ -70,7 +70,7 @@ public class Main extends Application {
         });
 
         TableColumn<Product, String> tc_id = new TableColumn<>("Id");
-        tc_id.setMinWidth(100);
+        tc_id.setMinWidth(24);
         tc_id.setCellValueFactory(
                 new PropertyValueFactory<Product,String>("Id")
         );
@@ -233,7 +233,6 @@ public class Main extends Application {
         JSONArray jsonArr = new JSONArray();
         for (int i=0;i<data.size();i++) {
             JSONObject obj = new JSONObject();
-            System.out.println(i);
             String id = data.get(i).getId();
             String name = data.get(i).getName();
             String price = data.get(i).getPrice();
@@ -281,8 +280,7 @@ public class Main extends Application {
         else {
             label.setText("Connection unsuccessful, Response: " +  responseCode);
         }
-        System.out.println(responseCode);
-
+        System.out.println("Repsonse code: " + responseCode);
     }
 
     private void addProduct() {
@@ -337,9 +335,6 @@ public class Main extends Application {
         }
 
         JSONArray jsonObj = new JSONArray(response.toString());
-        System.out.println(response);
-        System.out.println(jsonObj);
-
         for (int i=0;i<10;i++) {
         //for (int i=0;i<jsonObj.length();i++) {
             String id = jsonObj.getJSONObject(i).get("id").toString();
