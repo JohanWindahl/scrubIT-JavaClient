@@ -3,14 +3,44 @@ package sample;
 public class Product {
     String Id;
     String Name;
-    String Stock;
+    String Quantity;
     String Price;
+    String QR;
+    String Url;
+    String Desc;
 
-    public Product(String i, String n, String s, String p) {
+    Product(String i, String n, String s, String p, String q, String u, String d) {
         this.Id = i;
         this.Name = n;
-        this.Stock = s;
+        this.Quantity = s;
         this.Price = p;
+        this.QR = q;
+        this.Url = u;
+        this.Desc = d;
+    }
+
+    public String getQr() {
+        return QR;
+    }
+
+    public void setQr(String qr) {
+        this.QR = qr;
+    }
+
+    public String getUrl() {
+        return Url;
+    }
+
+    public void setUrl(String url) {
+        this.Url = url;
+    }
+
+    public String getDesc() {
+        return Desc;
+    }
+
+    public void setDesc(String desc) {
+        this.Desc = desc;
     }
 
     public String getId() {return Id;}
@@ -25,12 +55,12 @@ public class Product {
         this.Name = name;
     }
 
-    public String getStock() {
-        return Stock;
+    public String getQuantity() {
+        return Quantity;
     }
 
-    public void setStock(String stock) {
-        Stock = stock;
+    public void setQuantity(String quantity) {
+        Quantity = quantity;
     }
 
     public String getPrice() {
@@ -46,15 +76,18 @@ public class Product {
         return "Product{" +
                 "Id='" + Id +
                 "Name='" + Name + '\'' +
-                ", Stock=" + Stock +
+                ", Quantity=" + Quantity +
                 ", Price=" + Price +
+                ", QR=" + QR +
+                ", url=" + Desc +
+                ", Desc=" + Url +
                 '}';
     }
 
     public static void main(String[] args) {
 
-        Product cola = new Product("1","Cola","120","12");
-        Product bebzi = new Product("2","Pepsi Max","99","12");
+        Product cola = new Product("1","Cola","120","12", "123","can of coke","www.google.se");
+        Product bebzi = new Product("2","Pepsi Max","99","12", "123","can of bebzi","www.google.se");
 
         System.out.println(cola);
         System.out.println(bebzi);
@@ -62,8 +95,8 @@ public class Product {
         System.out.println(cola.getName());
         System.out.println(bebzi.getName());
 
-        System.out.println(cola.getStock());
-        System.out.println(bebzi.getStock());
+        System.out.println(cola.getQuantity());
+        System.out.println(bebzi.getQuantity());
 
         System.out.println(cola.getPrice());
         System.out.println(bebzi.getPrice());
@@ -71,11 +104,11 @@ public class Product {
 
         cola.setName("Cola Zero");
         cola.setPrice("2");
-        cola.setStock("3");
+        cola.setQuantity("3");
 
         bebzi.setName("Pepsi");
         bebzi.setPrice("13");
-        bebzi.setStock("2");
+        bebzi.setQuantity("2");
 
         System.out.println(cola);
         System.out.println(bebzi);
