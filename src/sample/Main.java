@@ -1,15 +1,13 @@
 package sample;
 
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.control.cell.TextFieldTableCell;
-import org.apache.http.impl.client.CloseableHttpClient;
+import javafx.scene.text.TextAlignment;
 import org.json.*;
 import org.json.JSONObject;
 
@@ -21,6 +19,8 @@ import javafx.stage.Stage;
 import java.net.*;
 import java.io.*;
 
+import static javafx.scene.text.TextAlignment.CENTER;
+
 public class Main extends Application {
     Button getButton;
     Button setButton;
@@ -30,16 +30,31 @@ public class Main extends Application {
     TableView table;
     TextField tf_id;
     TextField tf_name;
-    TextField tf_stock;
+    TextField tf_quantity;
     TextField tf_price;
+    TextField tf_url;
+    TextField tf_desc;
+    TextField tf_qr;
+    TextField tf_password;
+
+    Integer idWidth = 170;
+    Integer nameWidth = 150;
+    Integer quantityWidth = 60;
+    Integer priceWidth = 50;
+    Integer urlWidth = 300;
+    Integer descWidth = 200;
+    Integer qrWidth = 150;
+
+    Integer totalWidth = 2+idWidth+nameWidth+quantityWidth+priceWidth+urlWidth+descWidth+qrWidth;
+
     Button add;
     Button deleteButton;
 
     ObservableList<Product> data =
             FXCollections.observableArrayList(
-                    new Product("1","Mock Cola","120","12"),
-                    new Product("2","Mock Pepsi Max","99","21")
-            );
+                    new Product("1","Cola","120","12", "123","www.google.se","coke"),
+                    new Product("2","Pepsi Max","99","12", "123","www.google.se","bebzi")
+             );
 
     @Override
     public void start(Stage primaryStage) {
@@ -54,7 +69,7 @@ public class Main extends Application {
 
 
         TableColumn<Product, String> tc_name = new TableColumn<>("Name");
-        tc_name.setMinWidth(300);
+        tc_name.setPrefWidth(nameWidth);
         tc_name.setCellValueFactory(
                 new PropertyValueFactory<Product,String>("Name")
         );
@@ -70,7 +85,7 @@ public class Main extends Application {
         });
 
         TableColumn<Product, String> tc_id = new TableColumn<>("Id");
-        tc_id.setMinWidth(24);
+        tc_id.setPrefWidth(idWidth);
         tc_id.setCellValueFactory(
                 new PropertyValueFactory<Product,String>("Id")
         );
@@ -87,7 +102,7 @@ public class Main extends Application {
 
 
         TableColumn<Product, String> tc_price = new TableColumn<>("Price");
-        tc_price.setMinWidth(100);
+        tc_price.setPrefWidth(priceWidth);
         tc_price.setCellValueFactory(
                 new PropertyValueFactory<Product,String>("Price")
         );
@@ -102,48 +117,115 @@ public class Main extends Application {
             }
         });
 
-        TableColumn<Product, String> tc_stock = new TableColumn<>("Stock");
-        tc_stock.setMinWidth(100);
-        tc_stock.setCellValueFactory(
-                new PropertyValueFactory<Product,String>("Stock")
+        TableColumn<Product, String> tc_quantity = new TableColumn<>("Quantity");
+        tc_quantity.setPrefWidth(quantityWidth);
+        tc_quantity.setCellValueFactory(
+                new PropertyValueFactory<Product,String>("Quantity")
         );
-        tc_stock.setCellFactory(TextFieldTableCell.forTableColumn());
+        tc_quantity.setCellFactory(TextFieldTableCell.forTableColumn());
 
-        tc_stock.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
+        tc_quantity.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
             @Override
             public void handle(CellEditEvent<Product,String> t) {
                 ((Product) t.getTableView().getItems().get(
                         t.getTablePosition().getRow())
-                ).setStock(t.getNewValue());
+                ).setQuantity(t.getNewValue());
             }
         });
 
-        table.getColumns().addAll(tc_id,tc_name, tc_price, tc_stock);
+
+
+        TableColumn<Product, String> tc_desc = new TableColumn<>("Desc");
+        tc_desc.setPrefWidth(descWidth);
+        tc_desc.setCellValueFactory(
+                new PropertyValueFactory<Product,String>("Desc")
+        );
+        tc_desc.setCellFactory(TextFieldTableCell.forTableColumn());
+
+        tc_desc.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
+            @Override
+            public void handle(CellEditEvent<Product,String> t) {
+                ((Product) t.getTableView().getItems().get(
+                        t.getTablePosition().getRow())
+                ).setDesc(t.getNewValue());
+            }
+        });
+
+
+        TableColumn<Product, String> tc_qr = new TableColumn<>("Qr-Code");
+        tc_qr.setPrefWidth(qrWidth);
+        tc_qr.setCellValueFactory(
+                new PropertyValueFactory<Product,String>("qr")
+        );
+        tc_qr.setCellFactory(TextFieldTableCell.forTableColumn());
+
+        tc_qr.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
+            @Override
+            public void handle(CellEditEvent<Product,String> t) {
+                ((Product) t.getTableView().getItems().get(
+                        t.getTablePosition().getRow())
+                ).setQr(t.getNewValue());
+            }
+        });
+
+        TableColumn<Product, String> tc_url = new TableColumn<>("Url");
+        tc_url.setPrefWidth(urlWidth);
+        tc_url.setCellValueFactory(
+                new PropertyValueFactory<Product,String>("Url")
+        );
+        tc_url.setCellFactory(TextFieldTableCell.forTableColumn());
+
+        tc_url.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
+            @Override
+            public void handle(CellEditEvent<Product,String> t) {
+                ((Product) t.getTableView().getItems().get(
+                        t.getTablePosition().getRow())
+                ).setUrl(t.getNewValue());
+            }
+        });
+
+
+        table.getColumns().addAll(tc_id, tc_name, tc_price, tc_quantity, tc_desc, tc_url, tc_qr);
         table.setItems(data);
 
         table.setOnMouseClicked(e -> {
             TablePosition cell = table.getFocusModel().getFocusedCell();
             table.setEditable(true);
             table.edit(cell.getRow(),cell.getTableColumn());
+        });
 
+        label = new Label();
+        label.setAlignment(Pos.CENTER);
+
+        label.setMinWidth(300);
+        label.setTranslateX(-300);
+        label.setTranslateY(280);
+
+
+        getButton = new Button();
+        getButton.setMinWidth(100);
+        getButton.setText("Get DB");
+        getButton.setTranslateX(label.getTranslateX()+label.getMinWidth()/2+getButton.getMinWidth()/2);
+
+        getButton.setTranslateY(label.getTranslateY());
+        getButton.setOnAction(e -> {
+            try {
+                doGetData();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
         });
 
 
-        exitButton = new Button();
-        exitButton.setText("Exit");
-        exitButton.setTranslateX(152);
-        exitButton.setTranslateY(245);
-        exitButton.setOnAction(e -> {
-            label.setText("Closing");
-            System.exit(1);
-        });
 
         setButton = new Button();
-        setButton.setText("Upload Table");
-        setButton.setTranslateX(exitButton.getTranslateX()-65);
-        setButton.setTranslateY(exitButton.getTranslateY());
+        setButton.setMinWidth(100);
+        setButton.setText("Update DB");
+        setButton.setMaxWidth(100);
+        setButton.setTranslateX(getButton.getTranslateX()+getButton.getMinWidth()/2+setButton.getMinWidth()/2);
+        setButton.setTranslateY(label.getTranslateY());
         setButton.setOnAction(e -> {
-            label.setText("Setting data...");
+            label.setText("Sending data...");
             try {
                 doSetData();
             } catch (IOException e1) {
@@ -151,59 +233,78 @@ public class Main extends Application {
             }
         });
 
-        getButton = new Button();
-        getButton.setText("Get Table");
-        getButton.setTranslateX(setButton.getTranslateX()-80);
-        getButton.setTranslateY(setButton.getTranslateY());
-        getButton.setOnAction(e -> {
-             try {
-                doGetData();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
+        exitButton = new Button();
+        exitButton.setMinWidth(100);
+        exitButton.setText("Exit");
+        exitButton.setTranslateX(setButton.getTranslateX()+setButton.getMinWidth()/2+exitButton.getMinWidth()/2);
+
+        exitButton.setTranslateY(label.getTranslateY());
+        exitButton.setOnAction(e -> {
+            label.setText("Closing");
+            System.exit(1);
         });
 
-        label = new Label();
-        label.setTranslateX(getButton.getTranslateX()-150);
-        label.setTranslateY(getButton.getTranslateY());
+
+
+
 
         tf_id = new TextField();
-        tf_id.setMaxWidth(29);
+        tf_id.setMaxWidth(idWidth);
         tf_id.setTranslateY(215);
-        tf_id.setTranslateX(-284);
+        tf_id.setTranslateX(-totalWidth/2+idWidth/2);
         tf_id.setText("id");
 
         tf_name = new TextField();
-        tf_name.setMaxWidth(298);
-        tf_name.setTranslateY(215);
-        tf_name.setTranslateX(-117);
+        tf_name.setMaxWidth(nameWidth);
+        tf_name.setTranslateY(tf_id.getTranslateY());
+        tf_name.setTranslateX(tf_id.getTranslateX()+idWidth/2+nameWidth/2);
         tf_name.setText("name");
 
         tf_price = new TextField();
-        tf_price.setMaxWidth(98);
-        tf_price.setTranslateY(215);
-        tf_price.setTranslateX(83);
+        tf_price.setMaxWidth(priceWidth);
+        tf_price.setTranslateY(tf_name.getTranslateY());
+        tf_price.setTranslateX(tf_name.getTranslateX()+nameWidth/2+priceWidth/2);
         tf_price.setText("price");
 
-        tf_stock = new TextField();
-        tf_stock.setMaxWidth(100);
-        tf_stock.setTranslateY(215);
-        tf_stock.setTranslateX(184);
-        tf_stock.setText("stock");
+        tf_quantity = new TextField();
+        tf_quantity.setMaxWidth(quantityWidth);
+        tf_quantity.setTranslateY(tf_price.getTranslateY());
+        tf_quantity.setTranslateX(tf_price.getTranslateX()+priceWidth/2+quantityWidth/2);
+        tf_quantity.setText("quantity");
 
-        add = new Button();
-        add.setText("Add row");
-        add.setTranslateX(265);
-        add.setTranslateY(215);
-        add.setOnAction(e -> {
-            label.setText("Added row");
-            addProduct();
-        });
+        tf_desc = new TextField();
+        tf_desc.setMaxWidth(descWidth);
+        tf_desc.setTranslateY(tf_quantity.getTranslateY());
+        tf_desc.setTranslateX(tf_quantity.getTranslateX()+quantityWidth/2+descWidth/2);
+        tf_desc.setText("description");
+
+        tf_url = new TextField();
+        tf_url.setMaxWidth(urlWidth);
+        tf_url.setTranslateY(tf_desc.getTranslateY());
+        tf_url.setTranslateX(tf_desc.getTranslateX()+descWidth/2+urlWidth/2);
+        tf_url.setText("url");
+
+        tf_qr = new TextField();
+        tf_qr.setMaxWidth(qrWidth);
+        tf_qr.setTranslateY(tf_url.getTranslateY());
+        tf_qr.setTranslateX(tf_url.getTranslateX()+urlWidth/2+qrWidth/2);
+        tf_qr.setText("qr");
+
+        tf_password = new TextField();
+        tf_password.setMaxWidth(setButton.getMinWidth());
+        tf_password.setTranslateY(setButton.getTranslateY()+26);
+        tf_password.setTranslateX(setButton.getTranslateX());
+        tf_password.setText("password");
+
+
+
 
         deleteButton = new Button();
         deleteButton.setText("Remove row");
-        deleteButton.setTranslateX(255);
-        deleteButton.setTranslateY(setButton.getTranslateY());
+        deleteButton.setMinWidth(setButton.getMinWidth());
+
+        deleteButton.setTranslateX(setButton.getTranslateX());
+        deleteButton.setTranslateY(setButton.getTranslateY()-26);
 
         deleteButton.setOnAction(e -> {
             Product selectedItem = table.getSelectionModel().getSelectedItem();
@@ -217,11 +318,23 @@ public class Main extends Application {
         });
 
 
+        add = new Button();
+        add.setText("Add row");
+        add.setMinWidth(getButton.getMinWidth());
+
+        add.setTranslateX(getButton.getTranslateX());
+        add.setTranslateY(getButton.getTranslateY()-26);
+        add.setOnAction(e -> {
+            label.setText("Added row");
+            addProduct();
+        });
+
+
         layout = new StackPane();
-        layout.getChildren().addAll(deleteButton,add,tf_id,tf_name,tf_price,tf_stock,getButton, setButton,exitButton,label,table);
+        layout.getChildren().addAll(deleteButton,add,tf_id,tf_name,tf_price,tf_quantity,tf_desc,tf_url,tf_qr,getButton,setButton,exitButton,label,table,tf_password);
         layout.setAlignment(Pos.CENTER);
 
-        Scene root = new Scene(layout, 600, 700);
+        Scene root = new Scene(layout, totalWidth, 700);
 
         primaryStage.setScene(root);
         primaryStage.setResizable(false);
@@ -236,7 +349,7 @@ public class Main extends Application {
             String id = data.get(i).getId();
             String name = data.get(i).getName();
             String price = data.get(i).getPrice();
-            String stock = data.get(i).getStock();
+            String stock = data.get(i).getQuantity();
 
             obj.put("id",id);
             obj.put("name",name);
@@ -251,11 +364,13 @@ public class Main extends Application {
 
         String json = jsonArr.toString();
 
-        String url1 = "https://gurujsonrpc.appspot.com/guru";
-        String url2 = "https://httpbin.org/post";
-        String url3 = "http://ptsv2.com/t/naye5-1517696027/post";
+        String url3 = "http://ptsv2.com/t/pnyno-1518085886/post";
+        String url2 = "https://scrubit.herokuapp.com/api/get-all";
+        String url1 = "https://scrubit.herokuapp.com/api/insert";
 
-        URL obj = new URL(url3);
+
+
+        URL obj = new URL(url1);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setDoOutput(true);
         con.setRequestMethod("POST");
@@ -287,9 +402,12 @@ public class Main extends Application {
         try {
             String id = tf_id.getText();
             String name = tf_name.getText();
-            String stock = tf_stock.getText();
+            String stock = tf_quantity.getText();
             String price = tf_price.getText();
-            Product newProduct = new Product(id,name,stock,price);
+            String url = tf_url.getText();
+            String qr = tf_qr.getText();
+            String desc=tf_desc.getText();
+            Product newProduct = new Product(id,name,stock,price,qr,url,desc);
 
             boolean doAdd = true;
             for (int i = 0;i<data.size();i++) {
@@ -301,16 +419,17 @@ public class Main extends Application {
             if (doAdd) {
                 data.add(newProduct);
             }
-
         } catch(Exception e) {
             label.setText("Invalid Format");
         }
     }
 
     private void doGetData() throws IOException {
-        label.setText("Getting data...");
+        label.setText("Downloading data...");
 
-        String urlToJson = "https://jsonplaceholder.typicode.com/todos";
+        String urlToJson2 = "https://jsonplaceholder.typicode.com/todos";
+        String urlToJson = "https://scrubit.herokuapp.com/api/get-all";
+
         URL obj = new URL(urlToJson);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("GET");
@@ -333,17 +452,20 @@ public class Main extends Application {
             response.append(inputLine);
             response.append("\n");
         }
-
+        System.out.println(response);
         JSONArray jsonObj = new JSONArray(response.toString());
-        for (int i=0;i<10;i++) {
-        //for (int i=0;i<jsonObj.length();i++) {
-            String id = jsonObj.getJSONObject(i).get("id").toString();
-            String name = jsonObj.getJSONObject(i).get("title").toString();
-            String stock = jsonObj.getJSONObject(i).get("userId").toString();
-            String price = jsonObj.getJSONObject(i).get("userId").toString();
 
-            Product test = new Product(id,name,stock,price);
-            data.add(test);
+        for (int i=0;i<jsonObj.length();i++) {
+            String id = jsonObj.getJSONObject(i).get("_id").toString();
+            String name = jsonObj.getJSONObject(i).get("name").toString();
+            String stock = jsonObj.getJSONObject(i).get("quantity").toString();
+            String price = jsonObj.getJSONObject(i).get("price").toString();
+            String qr = jsonObj.getJSONObject(i).get("QR").toString();
+            String desc = jsonObj.getJSONObject(i).get("description").toString();
+            String url = jsonObj.getJSONObject(i).get("url").toString();
+
+            Product newProd = new Product(id,name,stock,price,qr,url,desc);
+            data.add(newProd);
         }
         table.setItems(data);
     }
