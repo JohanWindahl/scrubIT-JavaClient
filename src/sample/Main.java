@@ -25,6 +25,8 @@ public class Main extends Application {
     Button getButton;
     Button setButton;
     Button exitButton;
+    Button updateSingleButton;
+
     Label label;
     StackPane layout;
     TableView table;
@@ -35,7 +37,7 @@ public class Main extends Application {
     TextField tf_url;
     TextField tf_desc;
     TextField tf_qr;
-    TextField tf_password;
+    PasswordField tf_password;
 
     Integer idWidth = 170;
     Integer nameWidth = 150;
@@ -45,15 +47,15 @@ public class Main extends Application {
     Integer descWidth = 200;
     Integer qrWidth = 150;
 
-    Integer totalWidth = 2+idWidth+nameWidth+quantityWidth+priceWidth+urlWidth+descWidth+qrWidth;
+    Integer totalWidth = 4+idWidth+nameWidth+quantityWidth+priceWidth+urlWidth+descWidth+qrWidth;
 
     Button add;
     Button deleteButton;
 
     ObservableList<Product> data =
             FXCollections.observableArrayList(
-                    new Product("1","Cola","120","12", "123","www.google.se","coke"),
-                    new Product("2","Pepsi Max","99","12", "123","www.google.se","bebzi")
+                    new Product("1","MOCK Cola","120","12", "123","www.google.se","coke"),
+                    new Product("2","MOCK Pepsi Max","99","12", "123","www.google.se","bebzi")
              );
 
     @Override
@@ -65,8 +67,6 @@ public class Main extends Application {
         TableView<Product> table = new TableView<>();
         table.setTranslateY(-75);
         table.setMaxHeight(550);
-
-
 
         TableColumn<Product, String> tc_name = new TableColumn<>("Name");
         tc_name.setPrefWidth(nameWidth);
@@ -201,7 +201,6 @@ public class Main extends Application {
         label.setTranslateX(-300);
         label.setTranslateY(280);
 
-
         getButton = new Button();
         getButton.setMinWidth(100);
         getButton.setText("Get DB");
@@ -215,7 +214,6 @@ public class Main extends Application {
                 e1.printStackTrace();
             }
         });
-
 
 
         setButton = new Button();
@@ -243,9 +241,6 @@ public class Main extends Application {
             label.setText("Closing");
             System.exit(1);
         });
-
-
-
 
 
         tf_id = new TextField();
@@ -290,20 +285,18 @@ public class Main extends Application {
         tf_qr.setTranslateX(tf_url.getTranslateX()+urlWidth/2+qrWidth/2);
         tf_qr.setText("qr");
 
-        tf_password = new TextField();
+        tf_password = new PasswordField();
         tf_password.setMaxWidth(setButton.getMinWidth());
         tf_password.setTranslateY(setButton.getTranslateY()+26);
         tf_password.setTranslateX(setButton.getTranslateX());
-        tf_password.setText("password");
-
-
+        tf_password.setPromptText("password");
 
 
         deleteButton = new Button();
         deleteButton.setText("Remove row");
         deleteButton.setMinWidth(setButton.getMinWidth());
 
-        deleteButton.setTranslateX(setButton.getTranslateX());
+        deleteButton.setTranslateX(exitButton.getTranslateX());
         deleteButton.setTranslateY(setButton.getTranslateY()-26);
 
         deleteButton.setOnAction(e -> {
@@ -330,8 +323,28 @@ public class Main extends Application {
         });
 
 
+
+        updateSingleButton = new Button();
+        updateSingleButton.setText("Update row DB");
+        updateSingleButton.setMinWidth(exitButton.getMinWidth());
+
+        updateSingleButton.setTranslateX(setButton.getTranslateX());
+        updateSingleButton.setTranslateY(add.getTranslateY());
+
+        updateSingleButton.setOnAction(e -> {
+            Product selectedItem = table.getSelectionModel().getSelectedItem();
+            if (selectedItem==null) {
+                label.setText("Choose row");
+            }
+            else {
+                //table.getItems().remove(selectedItem);
+                label.setText("Row updated");
+                //TODO
+            }
+        });
+
         layout = new StackPane();
-        layout.getChildren().addAll(deleteButton,add,tf_id,tf_name,tf_price,tf_quantity,tf_desc,tf_url,tf_qr,getButton,setButton,exitButton,label,table,tf_password);
+        layout.getChildren().addAll(updateSingleButton, deleteButton,add,tf_id,tf_name,tf_price,tf_quantity,tf_desc,tf_url,tf_qr,getButton,setButton,exitButton,label,table,tf_password);
         layout.setAlignment(Pos.CENTER);
 
         Scene root = new Scene(layout, totalWidth, 700);
@@ -456,16 +469,22 @@ public class Main extends Application {
         JSONArray jsonObj = new JSONArray(response.toString());
 
         for (int i=0;i<jsonObj.length();i++) {
-            String id = jsonObj.getJSONObject(i).get("_id").toString();
-            String name = jsonObj.getJSONObject(i).get("name").toString();
-            String stock = jsonObj.getJSONObject(i).get("quantity").toString();
-            String price = jsonObj.getJSONObject(i).get("price").toString();
-            String qr = jsonObj.getJSONObject(i).get("QR").toString();
-            String desc = jsonObj.getJSONObject(i).get("description").toString();
-            String url = jsonObj.getJSONObject(i).get("url").toString();
+            try {
+                String id = jsonObj.getJSONObject(i).get("_id").toString();
+                String name = jsonObj.getJSONObject(i).get("name").toString();
+                String stock = jsonObj.getJSONObject(i).get("quantity").toString();
+                String price = jsonObj.getJSONObject(i).get("price").toString();
+                String qr = jsonObj.getJSONObject(i).get("QR").toString();
+                String desc = jsonObj.getJSONObject(i).get("description").toString();
+                String url = jsonObj.getJSONObject(i).get("url").toString();
 
-            Product newProd = new Product(id,name,stock,price,qr,url,desc);
-            data.add(newProd);
+                Product newProd = new Product(id,name,stock,price,qr,url,desc);
+                data.add(newProd);
+            } catch (JSONException e1) {
+                System.out.println("Some objects did not have all attributes");
+            }
+
+
         }
         table.setItems(data);
     }
