@@ -96,9 +96,14 @@ public class Main extends Application {
         tc_price.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
             @Override
             public void handle(CellEditEvent<Product,String> t) {
-                ((Product) t.getTableView().getItems().get(
-                        t.getTablePosition().getRow())
-                ).setPrice(t.getNewValue());
+                try{
+                    int intTest = Integer.parseInt(t.getNewValue());
+                    ((Product) t.getTableView().getItems().get(
+                            t.getTablePosition().getRow())
+                    ).setPrice(t.getNewValue());
+                } catch (NumberFormatException e) {
+                    label.setText("Price has to be integer");
+                }
             }
         });
 
@@ -111,9 +116,14 @@ public class Main extends Application {
         tc_quantity.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
             @Override
             public void handle(CellEditEvent<Product,String> t) {
-                ((Product) t.getTableView().getItems().get(
-                        t.getTablePosition().getRow())
-                ).setQuantity(t.getNewValue());
+                try{
+                    int intTest = Integer.parseInt(t.getNewValue());
+                    ((Product) t.getTableView().getItems().get(
+                            t.getTablePosition().getRow())
+                    ).setQuantity(t.getNewValue());
+                } catch (NumberFormatException e) {
+                    label.setText("Quantity has to be integer");
+                }
             }
         });
 
