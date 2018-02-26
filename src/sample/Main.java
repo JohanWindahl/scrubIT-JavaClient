@@ -26,6 +26,8 @@ public class Main extends Application {
     Button setButton;
     Button exitButton;
     Button updateSingleButton;
+    Button add;
+    Button deleteButton;
 
     Label label;
     StackPane layout;
@@ -45,11 +47,7 @@ public class Main extends Application {
     Integer urlWidth = 300;
     Integer descWidth = 200;
     Integer qrWidth = 150;
-
     Integer totalWidth = 4+idWidth+nameWidth+quantityWidth+priceWidth+urlWidth+descWidth+qrWidth;
-
-    Button add;
-    Button deleteButton;
 
     ObservableList<Product> data =
             FXCollections.observableArrayList(
@@ -73,7 +71,6 @@ public class Main extends Application {
                 new PropertyValueFactory<Product,String>("Name")
         );
         tc_name.setCellFactory(TextFieldTableCell.forTableColumn());
-
         tc_name.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
             @Override
             public void handle(CellEditEvent<Product,String> t) {
@@ -86,7 +83,6 @@ public class Main extends Application {
         TableColumn<Product, String> tc_id = new TableColumn<>("Id");
 
         tc_id.setPrefWidth(idWidth);
-
         tc_id.setCellValueFactory(
                 new PropertyValueFactory<Product,String>("Id")
         );
@@ -97,7 +93,6 @@ public class Main extends Application {
                 new PropertyValueFactory<Product,String>("Price")
         );
         tc_price.setCellFactory(TextFieldTableCell.forTableColumn());
-
         tc_price.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
             @Override
             public void handle(CellEditEvent<Product,String> t) {
@@ -113,7 +108,6 @@ public class Main extends Application {
                 new PropertyValueFactory<Product,String>("Quantity")
         );
         tc_quantity.setCellFactory(TextFieldTableCell.forTableColumn());
-
         tc_quantity.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
             @Override
             public void handle(CellEditEvent<Product,String> t) {
@@ -131,7 +125,6 @@ public class Main extends Application {
                 new PropertyValueFactory<Product,String>("Desc")
         );
         tc_desc.setCellFactory(TextFieldTableCell.forTableColumn());
-
         tc_desc.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
             @Override
             public void handle(CellEditEvent<Product,String> t) {
@@ -148,7 +141,6 @@ public class Main extends Application {
                 new PropertyValueFactory<Product,String>("qr")
         );
         tc_qr.setCellFactory(TextFieldTableCell.forTableColumn());
-
         tc_qr.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
             @Override
             public void handle(CellEditEvent<Product,String> t) {
@@ -164,7 +156,6 @@ public class Main extends Application {
                 new PropertyValueFactory<Product,String>("Url")
         );
         tc_url.setCellFactory(TextFieldTableCell.forTableColumn());
-
         tc_url.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
             @Override
             public void handle(CellEditEvent<Product,String> t) {
@@ -177,7 +168,6 @@ public class Main extends Application {
 
         table.getColumns().addAll(tc_id, tc_name, tc_price, tc_quantity, tc_desc, tc_url, tc_qr);
         table.setItems(data);
-
         table.setOnMouseClicked(e -> {
             TablePosition cell = table.getFocusModel().getFocusedCell();
             table.setEditable(true);
@@ -186,7 +176,6 @@ public class Main extends Application {
 
         label = new Label();
         label.setAlignment(Pos.CENTER);
-
         label.setMinWidth(300);
         label.setTranslateX(-300);
         label.setTranslateY(280);
@@ -195,7 +184,6 @@ public class Main extends Application {
         getButton.setMinWidth(100);
         getButton.setText("Fetch DB");
         getButton.setTranslateX(label.getTranslateX()+label.getMinWidth()/2+getButton.getMinWidth()/2);
-
         getButton.setTranslateY(label.getTranslateY());
         getButton.setOnAction(e -> {
             try {
@@ -204,7 +192,6 @@ public class Main extends Application {
                 e1.printStackTrace();
             }
         });
-
 
         setButton = new Button();
         setButton.setMinWidth(100);
@@ -274,14 +261,11 @@ public class Main extends Application {
         tf_password.setTranslateX(setButton.getTranslateX());
         tf_password.setPromptText("password");
 
-
         deleteButton = new Button();
         deleteButton.setText("Remove row");
         deleteButton.setMinWidth(setButton.getMinWidth());
-
         deleteButton.setTranslateX(exitButton.getTranslateX());
         deleteButton.setTranslateY(setButton.getTranslateY()-26);
-
         deleteButton.setOnAction(e -> {
             Product selectedItem = table.getSelectionModel().getSelectedItem();
             if (selectedItem==null) {
@@ -293,19 +277,15 @@ public class Main extends Application {
             }
         });
 
-
         add = new Button();
         add.setText("Add row");
         add.setMinWidth(getButton.getMinWidth());
-
         add.setTranslateX(getButton.getTranslateX());
         add.setTranslateY(getButton.getTranslateY()-26);
         add.setOnAction(e -> {
             label.setText("Added row");
-            addProduct();
+            addProductToList();
         });
-
-
 
         updateSingleButton = new Button();
         updateSingleButton.setText("Update one row");
@@ -313,16 +293,19 @@ public class Main extends Application {
 
         updateSingleButton.setTranslateX(setButton.getTranslateX());
         updateSingleButton.setTranslateY(add.getTranslateY());
-
         updateSingleButton.setOnAction(e -> {
             Product selectedItem = table.getSelectionModel().getSelectedItem();
             if (selectedItem==null) {
                 label.setText("Choose row");
             }
             else {
-                //table.getItems().remove(selectedItem);
-                label.setText("Row updated");
-                //TODO
+                if (tf_password.getText().equals("hej")) {
+                    label.setText("Row updated");
+                    doPostOneRow();
+                }
+                else {
+                    label.setText("Wrong Password");
+                }
             }
         });
 
@@ -337,6 +320,9 @@ public class Main extends Application {
         primaryStage.show();
     }
 
+    private void doPostOneRow() {
+        label.setText(tf_password.getText());
+    }
     private void doSetData() throws IOException {
         JSONArray jsonArr = new JSONArray();
         for (int i=0;i<data.size();i++) {
@@ -393,7 +379,7 @@ public class Main extends Application {
         System.out.println("Repsonse code: " + responseCode);
     }
 
-    private void addProduct() {
+    private void addProductToList() {
         try {
             String name = tf_name.getText();
             String stock = tf_quantity.getText();
@@ -401,10 +387,14 @@ public class Main extends Application {
             String url = tf_url.getText();
             String qr = tf_qr.getText();
             String desc=tf_desc.getText();
-            Product newProduct = new Product(name,stock,price,qr,url,desc);
-
-            data.add(newProduct);
-
+            try{
+                int stockInt = Integer.parseInt(stock);
+                int priceInt = Integer.parseInt(price);
+                Product newProduct = new Product(name,stock,price,qr,url,desc);
+                data.add(newProduct);
+            } catch (NumberFormatException e) {
+                label.setText("Price & Stock has to be integer");
+            }
         } catch(Exception e) {
             label.setText("Invalid Format");
         }
@@ -413,7 +403,6 @@ public class Main extends Application {
     private void doGetData() throws IOException {
         label.setText("Downloading data...");
 
-        String urlToJson2 = "https://jsonplaceholder.typicode.com/todos";
         String urlToJson = "https://scrubit.herokuapp.com/api/get-all";
 
         URL obj = new URL(urlToJson);
@@ -450,14 +439,11 @@ public class Main extends Application {
                 String qr = jsonObj.getJSONObject(i).get("QR").toString();
                 String desc = jsonObj.getJSONObject(i).get("description").toString();
                 String url = jsonObj.getJSONObject(i).get("url").toString();
-
                 Product newProd = new Product(id,name,stock,price,qr,url,desc);
                 data.add(newProd);
             } catch (JSONException e1) {
                 System.out.println("Some objects did not have all attributes");
             }
-
-
         }
         table.setItems(data);
     }
