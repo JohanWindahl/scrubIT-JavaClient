@@ -2,6 +2,7 @@ package sample;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.*;
@@ -126,8 +127,6 @@ public class Main extends Application {
                 }
             }
         });
-
-
 
         TableColumn<Product, String> tc_desc = new TableColumn<>("Desc");
         tc_desc.setPrefWidth(descWidth);
@@ -303,7 +302,7 @@ public class Main extends Application {
 
         updateSingleButton.setTranslateX(setButton.getTranslateX());
         updateSingleButton.setTranslateY(add.getTranslateY());
-        updateSingleButton.setOnAction(e -> {
+        updateSingleButton.setOnAction((ActionEvent e) -> {
             Product selectedItem = table.getSelectionModel().getSelectedItem();
             if (selectedItem==null) {
                 label.setText("Choose row");
@@ -311,7 +310,11 @@ public class Main extends Application {
             else {
                 if (tf_password.getText().equals("hej")) {
                     label.setText("Row updated");
-                    doPostOneRow();
+                    try {
+                        doPostOneRow(table.getSelectionModel().getSelectedIndex());
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
                 }
                 else {
                     label.setText("Wrong Password");
@@ -330,9 +333,62 @@ public class Main extends Application {
         primaryStage.show();
     }
 
-    private void doPostOneRow() {
-        label.setText(tf_password.getText());
+    private void doPostOneRow(Integer rowNumber) throws IOException  {
+        System.out.println(rowNumber);
+        JSONArray jsonArr = new JSONArray();
+        JSONObject jsonRow = new JSONObject();
+
+        jsonRow.put("name",data.get(rowNumber).getName());
+        jsonRow.put("price",data.get(rowNumber).getPrice());
+        jsonRow.put("quantity",data.get(rowNumber).getQuantity());
+        jsonRow.put("description",data.get(rowNumber).getDesc());
+        jsonRow.put("url",data.get(rowNumber).getUrl());
+        jsonRow.put("qr",data.get(rowNumber).getQr());
+
+        jsonArr.put(jsonRow);
+        System.out.println("JSON= " + jsonArr);
+
+        String jsonArrAsString = jsonArr.toString();
+
+        String testUrl = "http://ptsv2.com/t/267mw-1519662159/post";
+        String url = "https://scrubit.herokuapp.com/api/insert";
+
+        URL conObj = new URL(testUrl);
+        HttpURLConnection con = (HttpURLConnection) conObj.openConnection();
+        con.setDoOutput(true);
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/json");
+
+        OutputStream os = con.getOutputStream();
+
+        BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(os, "UTF-8"));
+        writer.write(jsonArrAsString);
+
+        writer.flush();
+        writer.close();
+        os.close();
+
+
+        int responseCode = con.getResponseCode();
+
+        if (responseCode==200) {
+            label.setText("Request succeeded");
+        }
+        else {
+            label.setText("Connection unsuccessful, Response: " +  responseCode);
+        }
+        System.out.println("Repsonse code: " + responseCode);
     }
+
+
+
+    private void doSetData() throws IOException {
+        System.out.println("update all");
+        //TODO
+    }
+
+    /* OLD
     private void doSetData() throws IOException {
         JSONArray jsonArr = new JSONArray();
         for (int i=0;i<data.size();i++) {
@@ -345,8 +401,7 @@ public class Main extends Application {
             obj.put("id",id);
             obj.put("name",name);
             obj.put("price",price);
-            obj.put("stock",stock)
-            ;
+            obj.put("stock",stock);
             jsonArr.put(obj);
         }
         System.out.println("Creating JSON: ");
@@ -355,13 +410,11 @@ public class Main extends Application {
 
         String json = jsonArr.toString();
 
-        String url3 = "http://ptsv2.com/t/pnyno-1518085886/post";
+        String url3 = "http://ptsv2.com/t/267mw-1519662159/post";
         String url2 = "https://scrubit.herokuapp.com/api/get-all";
         String url1 = "https://scrubit.herokuapp.com/api/insert";
 
-
-
-        URL obj = new URL(url1);
+        URL obj = new URL(url3);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setDoOutput(true);
         con.setRequestMethod("POST");
@@ -388,6 +441,7 @@ public class Main extends Application {
         }
         System.out.println("Repsonse code: " + responseCode);
     }
+    */
 
     private void addProductToList() {
         try {
