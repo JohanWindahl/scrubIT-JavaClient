@@ -19,6 +19,16 @@ public class Product {
         this.Desc = d;
     }
 
+    Product(String n, String s, String p, String q, String u, String d) {
+        this.Name = n;
+        this.Quantity = s;
+        this.Price = p;
+        this.QR = q;
+        this.Url = u;
+        this.Desc = d;
+    }
+
+
     public String getQr() {
         return QR;
     }
@@ -86,8 +96,8 @@ public class Product {
 
     public static void main(String[] args) {
 
-        Product cola = new Product("1","Cola","120","12", "123","can of coke","www.google.se");
-        Product bebzi = new Product("2","Pepsi Max","99","12", "123","can of bebzi","www.google.se");
+        Product cola = new Product("Cola","120","12", "123","can of coke","www.google.se");
+        Product bebzi = new Product("Pepsi Max","99","12", "123","can of bebzi","www.google.se");
 
         System.out.println(cola);
         System.out.println(bebzi);

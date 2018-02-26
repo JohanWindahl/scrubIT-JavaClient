@@ -30,7 +30,6 @@ public class Main extends Application {
     Label label;
     StackPane layout;
     TableView table;
-    TextField tf_id;
     TextField tf_name;
     TextField tf_quantity;
     TextField tf_price;
@@ -54,8 +53,8 @@ public class Main extends Application {
 
     ObservableList<Product> data =
             FXCollections.observableArrayList(
-                    new Product("1","MOCK Cola","120","12", "123","www.google.se","coke"),
-                    new Product("2","MOCK Pepsi Max","99","12", "123","www.google.se","bebzi")
+                    new Product("MOCK Cola","120","12", "123","www.google.se","coke"),
+                    new Product("MOCK Pepsi Max","99","12", "123","www.google.se","bebzi")
              );
 
     @Override
@@ -85,21 +84,12 @@ public class Main extends Application {
         });
 
         TableColumn<Product, String> tc_id = new TableColumn<>("Id");
+
         tc_id.setPrefWidth(idWidth);
+
         tc_id.setCellValueFactory(
                 new PropertyValueFactory<Product,String>("Id")
         );
-        tc_id.setCellFactory(TextFieldTableCell.forTableColumn());
-
-        tc_id.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
-            @Override
-            public void handle(CellEditEvent<Product,String> t) {
-                ((Product) t.getTableView().getItems().get(
-                        t.getTablePosition().getRow())
-                ).setId(t.getNewValue());
-            }
-        });
-
 
         TableColumn<Product, String> tc_price = new TableColumn<>("Price");
         tc_price.setPrefWidth(priceWidth);
@@ -203,7 +193,7 @@ public class Main extends Application {
 
         getButton = new Button();
         getButton.setMinWidth(100);
-        getButton.setText("Get DB");
+        getButton.setText("Fetch DB");
         getButton.setTranslateX(label.getTranslateX()+label.getMinWidth()/2+getButton.getMinWidth()/2);
 
         getButton.setTranslateY(label.getTranslateY());
@@ -218,7 +208,7 @@ public class Main extends Application {
 
         setButton = new Button();
         setButton.setMinWidth(100);
-        setButton.setText("Update DB");
+        setButton.setText("Update all rows");
         setButton.setMaxWidth(100);
         setButton.setTranslateX(getButton.getTranslateX()+getButton.getMinWidth()/2+setButton.getMinWidth()/2);
         setButton.setTranslateY(label.getTranslateY());
@@ -242,17 +232,10 @@ public class Main extends Application {
             System.exit(1);
         });
 
-
-        tf_id = new TextField();
-        tf_id.setMaxWidth(idWidth);
-        tf_id.setTranslateY(215);
-        tf_id.setTranslateX(-totalWidth/2+idWidth/2);
-        tf_id.setText("id");
-
         tf_name = new TextField();
         tf_name.setMaxWidth(nameWidth);
-        tf_name.setTranslateY(tf_id.getTranslateY());
-        tf_name.setTranslateX(tf_id.getTranslateX()+idWidth/2+nameWidth/2);
+        tf_name.setTranslateY(215);
+        tf_name.setTranslateX((-totalWidth/2+idWidth/2)+idWidth/2+nameWidth/2);
         tf_name.setText("name");
 
         tf_price = new TextField();
@@ -325,7 +308,7 @@ public class Main extends Application {
 
 
         updateSingleButton = new Button();
-        updateSingleButton.setText("Update row DB");
+        updateSingleButton.setText("Update one row");
         updateSingleButton.setMinWidth(exitButton.getMinWidth());
 
         updateSingleButton.setTranslateX(setButton.getTranslateX());
@@ -344,7 +327,7 @@ public class Main extends Application {
         });
 
         layout = new StackPane();
-        layout.getChildren().addAll(updateSingleButton, deleteButton,add,tf_id,tf_name,tf_price,tf_quantity,tf_desc,tf_url,tf_qr,getButton,setButton,exitButton,label,table,tf_password);
+        layout.getChildren().addAll(updateSingleButton, deleteButton,add,tf_name,tf_price,tf_quantity,tf_desc,tf_url,tf_qr,getButton,setButton,exitButton,label,table,tf_password);
         layout.setAlignment(Pos.CENTER);
 
         Scene root = new Scene(layout, totalWidth, 700);
@@ -353,7 +336,6 @@ public class Main extends Application {
         primaryStage.setResizable(false);
         primaryStage.show();
     }
-
 
     private void doSetData() throws IOException {
         JSONArray jsonArr = new JSONArray();
@@ -413,25 +395,16 @@ public class Main extends Application {
 
     private void addProduct() {
         try {
-            String id = tf_id.getText();
             String name = tf_name.getText();
             String stock = tf_quantity.getText();
             String price = tf_price.getText();
             String url = tf_url.getText();
             String qr = tf_qr.getText();
             String desc=tf_desc.getText();
-            Product newProduct = new Product(id,name,stock,price,qr,url,desc);
+            Product newProduct = new Product(name,stock,price,qr,url,desc);
 
-            boolean doAdd = true;
-            for (int i = 0;i<data.size();i++) {
-                if (id.equals(data.get(i).getId())) {
-                    label.setText("ID already exists");
-                    doAdd = false;
-                }
-            }
-            if (doAdd) {
-                data.add(newProduct);
-            }
+            data.add(newProduct);
+
         } catch(Exception e) {
             label.setText("Invalid Format");
         }
