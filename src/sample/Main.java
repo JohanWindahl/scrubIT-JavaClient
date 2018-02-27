@@ -8,7 +8,6 @@ import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.text.TextAlignment;
 import org.json.*;
 import org.json.JSONObject;
 
@@ -20,14 +19,12 @@ import javafx.stage.Stage;
 import java.net.*;
 import java.io.*;
 
-import static javafx.scene.text.TextAlignment.CENTER;
-
 public class Main extends Application {
     Button getButton;
     Button setButton;
     Button exitButton;
     Button updateSingleButton;
-    Button add;
+    Button addButton;
     Button deleteButton;
 
     Label label;
@@ -51,10 +48,7 @@ public class Main extends Application {
     Integer totalWidth = 4+idWidth+nameWidth+quantityWidth+priceWidth+urlWidth+descWidth+qrWidth;
 
     ObservableList<Product> data =
-            FXCollections.observableArrayList(
-                    new Product("MOCK Cola","120","12", "123","www.google.se","coke"),
-                    new Product("MOCK Pepsi Max","99","12", "123","www.google.se","bebzi")
-             );
+            FXCollections.observableArrayList();
 
     @Override
     public void start(Stage primaryStage) {
@@ -210,11 +204,7 @@ public class Main extends Application {
         setButton.setTranslateY(label.getTranslateY());
         setButton.setOnAction(e -> {
             label.setText("Sending data...");
-            try {
-                doSetData();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
+                System.out.println("none");
         });
 
         exitButton = new Button();
@@ -271,7 +261,7 @@ public class Main extends Application {
         tf_password.setPromptText("password");
 
         deleteButton = new Button();
-        deleteButton.setText("Remove row");
+        deleteButton.setText("Delete row");
         deleteButton.setMinWidth(setButton.getMinWidth());
         deleteButton.setTranslateX(exitButton.getTranslateX());
         deleteButton.setTranslateY(setButton.getTranslateY()-26);
@@ -281,19 +271,30 @@ public class Main extends Application {
                 label.setText("Choose row");
             }
             else {
-                table.getItems().remove(selectedItem);
+                //table.getItems().remove(selectedItem);
                 label.setText("Removed row");
+                try {
+                    doDeleteRow(table.getSelectionModel().getSelectedIndex());
+                    doGetData();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                };
             }
         });
 
-        add = new Button();
-        add.setText("Add row");
-        add.setMinWidth(getButton.getMinWidth());
-        add.setTranslateX(getButton.getTranslateX());
-        add.setTranslateY(getButton.getTranslateY()-26);
-        add.setOnAction(e -> {
-            label.setText("Added row");
-            addProductToList();
+        addButton = new Button();
+        addButton.setText("Add row");
+        addButton.setMinWidth(getButton.getMinWidth());
+        addButton.setTranslateX(getButton.getTranslateX());
+        addButton.setTranslateY(getButton.getTranslateY()-26);
+        addButton.setOnAction(e -> {
+        label.setText("Added row");
+            try {
+                doInsertOneRow();
+                doGetData();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
         });
 
         updateSingleButton = new Button();
@@ -301,7 +302,7 @@ public class Main extends Application {
         updateSingleButton.setMinWidth(exitButton.getMinWidth());
 
         updateSingleButton.setTranslateX(setButton.getTranslateX());
-        updateSingleButton.setTranslateY(add.getTranslateY());
+        updateSingleButton.setTranslateY(addButton.getTranslateY());
         updateSingleButton.setOnAction((ActionEvent e) -> {
             Product selectedItem = table.getSelectionModel().getSelectedItem();
             if (selectedItem==null) {
@@ -311,7 +312,7 @@ public class Main extends Application {
                 if (tf_password.getText().equals("hej")) {
                     label.setText("Row updated");
                     try {
-                        doPostOneRow(table.getSelectionModel().getSelectedIndex());
+                        doUpdateRow(table.getSelectionModel().getSelectedIndex());
                     } catch (IOException e1) {
                         e1.printStackTrace();
                     }
@@ -323,7 +324,7 @@ public class Main extends Application {
         });
 
         layout = new StackPane();
-        layout.getChildren().addAll(updateSingleButton, deleteButton,add,tf_name,tf_price,tf_quantity,tf_desc,tf_url,tf_qr,getButton,setButton,exitButton,label,table,tf_password);
+        layout.getChildren().addAll(updateSingleButton, deleteButton, addButton,tf_name,tf_price,tf_quantity,tf_desc,tf_url,tf_qr,getButton,exitButton,label,table,tf_password);
         layout.setAlignment(Pos.CENTER);
 
         Scene root = new Scene(layout, totalWidth, 700);
@@ -331,143 +332,96 @@ public class Main extends Application {
         primaryStage.setScene(root);
         primaryStage.setResizable(false);
         primaryStage.show();
+        try {
+            doGetData();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
-    private void doPostOneRow(Integer rowNumber) throws IOException  {
-        System.out.println(rowNumber);
-        JSONArray jsonArr = new JSONArray();
-        JSONObject jsonRow = new JSONObject();
+    private void connectToUrlSendObj(String url, String stringToSend,String Method) throws IOException  {
+        System.out.println("URL: " + url);
+        System.out.println("Params: " + stringToSend);
 
-        jsonRow.put("name",data.get(rowNumber).getName());
-        jsonRow.put("price",data.get(rowNumber).getPrice());
-        jsonRow.put("quantity",data.get(rowNumber).getQuantity());
-        jsonRow.put("description",data.get(rowNumber).getDesc());
-        jsonRow.put("url",data.get(rowNumber).getUrl());
-        jsonRow.put("qr",data.get(rowNumber).getQr());
+        URL conUrl = new URL(url);
+        HttpURLConnection con = (HttpURLConnection) conUrl.openConnection();
+        con.setDoOutput(true);
+        con.setRequestMethod(Method);
+        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-        jsonArr.put(jsonRow);
-        System.out.println("JSON= " + jsonArr);
+        OutputStream os = con.getOutputStream();
 
-        String jsonArrAsString = jsonArr.toString();
+        BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(os, "UTF-8"));
+        writer.write(stringToSend);
+
+        writer.flush();
+        writer.close();
+        os.close();
+        con.connect();
+
+        int responseCode = con.getResponseCode();
+
+        if (responseCode==200 || responseCode==201) {
+            label.setText("Request succeeded");
+        }
+        else {
+            label.setText("Connection unsuccessful, Response: " +  responseCode);
+        }
+        System.out.println("Repsonse code: " + responseCode);
+    }
+
+    private void doInsertOneRow() throws IOException {
+        System.out.println("inserting row");
+
+        try {
+            int stockInt = Integer.parseInt(tf_qr.getText());
+            int priceInt = Integer.parseInt(tf_price.getText());
+            int qrInt = Integer.parseInt(tf_qr.getText());
+
+        } catch (NumberFormatException e) {
+            label.setText("Price, Stock and Qr has to be integer");
+        }
+        String stringToSend = "qr=" + tf_qr.getText() + "&name=" + tf_name.getText() + "&description=" + tf_desc.getText() +
+                "&price=" + tf_price.getText() + "&quantity=" + tf_quantity.getText() + "&url=" + tf_url.getText();
+
+        String testUrl = "http://ptsv2.com/t/020s2-1519735531/post";
+        String url = "http://scrubit.herokuapp.com/api/insert";
+
+        connectToUrlSendObj(url, stringToSend,"POST");
+    }
+
+    private void doDeleteRow(Integer rowNumber) throws IOException {
+        System.out.println("deleting row #" + rowNumber);
+        System.out.println("id=" + data.get(rowNumber).getId());
+        String stringToSend = "_id=" + data.get(rowNumber).getId();
+
+        String testUrl = "http://ptsv2.com/t/020s2-1519735531/post";
+        String url = "http://scrubit.herokuapp.com/api/delete";
+
+        connectToUrlSendObj(url,stringToSend,"POST");
+    }
+
+    private void doUpdateRow(Integer rowNumber) throws IOException  {
+        System.out.println("Updating row # " + rowNumber);
+
+        String stringToSend = "_id=" + data.get(rowNumber).getId() + "&qr=" + data.get(rowNumber).getQr() + "&name=" + data.get(rowNumber).getName() + "&description=" +
+                data.get(rowNumber).getDesc() + "&price=" + data.get(rowNumber).getPrice() + "&quantity=" +
+                data.get(rowNumber).getQuantity() + "&url=" + data.get(rowNumber).getUrl();
+        System.out.println(stringToSend);
 
         String testUrl = "http://ptsv2.com/t/267mw-1519662159/post";
-        String url = "https://scrubit.herokuapp.com/api/insert";
+        String url = "http://scrubit.herokuapp.com/api/update";
 
-        URL conObj = new URL(testUrl);
-        HttpURLConnection con = (HttpURLConnection) conObj.openConnection();
-        con.setDoOutput(true);
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json");
-
-        OutputStream os = con.getOutputStream();
-
-        BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(os, "UTF-8"));
-        writer.write(jsonArrAsString);
-
-        writer.flush();
-        writer.close();
-        os.close();
-
-
-        int responseCode = con.getResponseCode();
-
-        if (responseCode==200) {
-            label.setText("Request succeeded");
-        }
-        else {
-            label.setText("Connection unsuccessful, Response: " +  responseCode);
-        }
-        System.out.println("Repsonse code: " + responseCode);
-    }
-
-
-
-    private void doSetData() throws IOException {
-        System.out.println("update all");
-        //TODO
-    }
-
-    /* OLD
-    private void doSetData() throws IOException {
-        JSONArray jsonArr = new JSONArray();
-        for (int i=0;i<data.size();i++) {
-            JSONObject obj = new JSONObject();
-            String id = data.get(i).getId();
-            String name = data.get(i).getName();
-            String price = data.get(i).getPrice();
-            String stock = data.get(i).getQuantity();
-
-            obj.put("id",id);
-            obj.put("name",name);
-            obj.put("price",price);
-            obj.put("stock",stock);
-            jsonArr.put(obj);
-        }
-        System.out.println("Creating JSON: ");
-        System.out.println(jsonArr);
-        System.out.println("Sending JSON: ");
-
-        String json = jsonArr.toString();
-
-        String url3 = "http://ptsv2.com/t/267mw-1519662159/post";
-        String url2 = "https://scrubit.herokuapp.com/api/get-all";
-        String url1 = "https://scrubit.herokuapp.com/api/insert";
-
-        URL obj = new URL(url3);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setDoOutput(true);
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json");
-
-        OutputStream os = con.getOutputStream();
-
-        BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(os, "UTF-8"));
-        writer.write(json);
-
-        writer.flush();
-        writer.close();
-        os.close();
-
-
-        int responseCode = con.getResponseCode();
-
-        if (responseCode==200) {
-            label.setText("Request succeeded");
-        }
-        else {
-            label.setText("Connection unsuccessful, Response: " +  responseCode);
-        }
-        System.out.println("Repsonse code: " + responseCode);
-    }
-    */
-
-    private void addProductToList() {
-        try {
-            String name = tf_name.getText();
-            String stock = tf_quantity.getText();
-            String price = tf_price.getText();
-            String url = tf_url.getText();
-            String qr = tf_qr.getText();
-            String desc=tf_desc.getText();
-            try{
-                int stockInt = Integer.parseInt(stock);
-                int priceInt = Integer.parseInt(price);
-                Product newProduct = new Product(name,stock,price,qr,url,desc);
-                data.add(newProduct);
-            } catch (NumberFormatException e) {
-                label.setText("Price & Stock has to be integer");
-            }
-        } catch(Exception e) {
-            label.setText("Invalid Format");
-        }
+        connectToUrlSendObj(url,stringToSend,"POST");
     }
 
     private void doGetData() throws IOException {
+        System.out.println("Fetching whole DB");
         label.setText("Downloading data...");
 
-        String urlToJson = "https://scrubit.herokuapp.com/api/get-all";
+        String urlToJson = "http://scrubit.herokuapp.com/api/get-all";
 
         URL obj = new URL(urlToJson);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -500,12 +454,13 @@ public class Main extends Application {
                 String name = jsonObj.getJSONObject(i).get("name").toString();
                 String stock = jsonObj.getJSONObject(i).get("quantity").toString();
                 String price = jsonObj.getJSONObject(i).get("price").toString();
-                String qr = jsonObj.getJSONObject(i).get("QR").toString();
+                String qr = jsonObj.getJSONObject(i).get("qr").toString();
                 String desc = jsonObj.getJSONObject(i).get("description").toString();
                 String url = jsonObj.getJSONObject(i).get("url").toString();
                 Product newProd = new Product(id,name,stock,price,qr,url,desc);
                 data.add(newProd);
             } catch (JSONException e1) {
+                System.out.println(e1);
                 System.out.println("Some objects did not have all attributes");
             }
         }
@@ -513,7 +468,9 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
+
         launch(args);
+
     }
 }
 
