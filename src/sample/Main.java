@@ -17,24 +17,23 @@ import java.io.*;
 
 public class Main extends Application {
     String sysPassword;
+    private Label label;
+    private StackPane layout;
+    private TableView table;
+    private PasswordField tf_password;
 
     private Button getButton;
-    private Button setButton;
     private Button exitButton;
     private Button updateSingleButton;
     private Button addButton;
     private Button deleteButton;
 
-    private Label label;
-    private StackPane layout;
-    private TableView table;
     private TextField tf_name;
     private TextField tf_quantity;
     private TextField tf_price;
     private TextField tf_url;
     private TextField tf_desc;
     private TextField tf_qr;
-    private PasswordField tf_password;
 
     private Integer idWidth = 170;
     private Integer nameWidth = 150;
@@ -45,8 +44,7 @@ public class Main extends Application {
     private Integer qrWidth = 150;
     private Integer totalWidth = 4+idWidth+nameWidth+quantityWidth+priceWidth+urlWidth+descWidth+qrWidth;
 
-    private ObservableList<Product> data =
-            FXCollections.observableArrayList();
+    private ObservableList<Product> data = FXCollections.observableArrayList();
 
     @Override
     public void start(Stage primaryStage) {
@@ -226,21 +224,30 @@ public class Main extends Application {
             }
         });
 
-        setButton = new Button();
-        setButton.setMinWidth(100);
-        setButton.setText("Update all rows");
-        setButton.setMaxWidth(100);
-        setButton.setTranslateX(getButton.getTranslateX()+getButton.getMinWidth()/2+setButton.getMinWidth()/2);
-        setButton.setTranslateY(label.getTranslateY());
-        setButton.setOnAction(e -> {
-            label.setText("Sending data...");
-                System.out.println("none");
+        updateSingleButton = new Button();
+        updateSingleButton.setText("Update item");
+        updateSingleButton.setMinWidth(100);
+        updateSingleButton.setMaxWidth(100);
+        updateSingleButton.setTranslateX(getButton.getTranslateX()+getButton.getMinWidth()/2+updateSingleButton.getMinWidth()/2);
+        updateSingleButton.setTranslateY(getButton.getTranslateY()-26);
+        updateSingleButton.setOnAction((ActionEvent e) -> {
+            Product selectedItem = table.getSelectionModel().getSelectedItem();
+            if (selectedItem==null) {
+                label.setText("Choose row");
+            }
+            else if (checkPassword()) {
+                try {
+                    doUpdateRow(table.getSelectionModel().getSelectedIndex());
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
         });
 
         exitButton = new Button();
         exitButton.setMinWidth(100);
         exitButton.setText("Exit");
-        exitButton.setTranslateX(setButton.getTranslateX()+setButton.getMinWidth()/2+exitButton.getMinWidth()/2);
+        exitButton.setTranslateX(updateSingleButton.getTranslateX()+updateSingleButton.getMinWidth()/2+exitButton.getMinWidth()/2);
 
         exitButton.setTranslateY(label.getTranslateY());
         exitButton.setOnAction(e -> {
@@ -285,16 +292,16 @@ public class Main extends Application {
         tf_qr.setText("qr");
 
         tf_password = new PasswordField();
-        tf_password.setMaxWidth(setButton.getMinWidth());
-        tf_password.setTranslateY(setButton.getTranslateY());
-        tf_password.setTranslateX(setButton.getTranslateX());
+        tf_password.setMaxWidth(updateSingleButton.getMinWidth());
+        tf_password.setTranslateY(label.getTranslateY());
+        tf_password.setTranslateX(updateSingleButton.getTranslateX());
         tf_password.setPromptText("password");
 
         deleteButton = new Button();
         deleteButton.setText("Remove item");
-        deleteButton.setMinWidth(setButton.getMinWidth());
+        deleteButton.setMinWidth(updateSingleButton.getMinWidth());
         deleteButton.setTranslateX(exitButton.getTranslateX());
-        deleteButton.setTranslateY(setButton.getTranslateY()-26);
+        deleteButton.setTranslateY(label.getTranslateY()-26);
         deleteButton.setOnAction(e -> {
             Product selectedItem = table.getSelectionModel().getSelectedItem();
             if (selectedItem==null) {
@@ -325,26 +332,6 @@ public class Main extends Application {
                 }
             }
           });
-
-        updateSingleButton = new Button();
-        updateSingleButton.setText("Update item");
-        updateSingleButton.setMinWidth(exitButton.getMinWidth());
-
-        updateSingleButton.setTranslateX(setButton.getTranslateX());
-        updateSingleButton.setTranslateY(addButton.getTranslateY());
-        updateSingleButton.setOnAction((ActionEvent e) -> {
-            Product selectedItem = table.getSelectionModel().getSelectedItem();
-            if (selectedItem==null) {
-                label.setText("Choose row");
-            }
-            else if (checkPassword()) {
-                 try {
-                    doUpdateRow(table.getSelectionModel().getSelectedIndex());
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        });
 
         layout = new StackPane();
         layout.getChildren().addAll(updateSingleButton, deleteButton, addButton,tf_name,tf_price,tf_quantity,tf_desc,tf_url,tf_qr,getButton,exitButton,label,table,tf_password);
@@ -388,6 +375,7 @@ public class Main extends Application {
         con.connect();
 
         int responseCode = con.getResponseCode();
+
         if (responseCode==200 || responseCode==201) {
             label.setText("Request succeeded");
         }
@@ -401,9 +389,17 @@ public class Main extends Application {
             int stockInt = Integer.parseInt(tf_qr.getText());
             int priceInt = Integer.parseInt(tf_price.getText());
             int qrInt = Integer.parseInt(tf_qr.getText());
-            String stringToSend = "qr=" + tf_qr.getText() + "&name=" + tf_name.getText() + "&description=" + tf_desc.getText() +
-                    "&price=" + tf_price.getText() + "&quantity=" + tf_quantity.getText() + "&url=" + tf_url.getText();
+
+            String stringToSend = "qr=" +
+                    tf_qr.getText() + "&name=" +
+                    tf_name.getText() + "&description=" +
+                    tf_desc.getText() + "&price=" +
+                    tf_price.getText() + "&quantity=" +
+                    tf_quantity.getText() + "&url=" +
+                    tf_url.getText();
+
             String url = "http://scrubit.herokuapp.com/api/insert";
+
             connectToUrlSendObj(url, stringToSend,"POST");
         } catch (NumberFormatException e) {
             label.setText("Price, Stock and Qr has to be integer");
@@ -413,16 +409,23 @@ public class Main extends Application {
 
     private void doDeleteRow(Integer rowNumber) throws IOException {
         String stringToSend = "_id=" + data.get(rowNumber).getId();
-        String testUrl = "http://ptsv2.com/t/020s2-1519735531/post";
         String url = "http://scrubit.herokuapp.com/api/delete";
+
         connectToUrlSendObj(url,stringToSend,"POST");
     }
 
     private void doUpdateRow(Integer rowNumber) throws IOException  {
-        String stringToSend = "_id=" + data.get(rowNumber).getId() + "&qr=" + data.get(rowNumber).getQr() + "&name=" + data.get(rowNumber).getName() + "&description=" +
-                data.get(rowNumber).getDesc() + "&price=" + data.get(rowNumber).getPrice() + "&quantity=" +
-                data.get(rowNumber).getQuantity() + "&url=" + data.get(rowNumber).getUrl();
+        String stringToSend = "_id=" +
+                data.get(rowNumber).getId() + "&qr=" +
+                data.get(rowNumber).getQr() + "&name=" +
+                data.get(rowNumber).getName() + "&description=" +
+                data.get(rowNumber).getDesc() + "&price=" +
+                data.get(rowNumber).getPrice() + "&quantity=" +
+                data.get(rowNumber).getQuantity() + "&url=" +
+                data.get(rowNumber).getUrl();
+
         String url = "http://scrubit.herokuapp.com/api/update";
+
         connectToUrlSendObj(url,stringToSend,"POST");
     }
 
@@ -435,7 +438,6 @@ public class Main extends Application {
         int responseCode = con.getResponseCode();
         if (responseCode==200) {
             data.clear();
-            //label.setText("Request succeeded");
         }
         else {
             label.setText("Connection unsuccessful, Response: " +  responseCode);
