@@ -3,14 +3,10 @@ package sample;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import org.json.*;
-import org.json.JSONObject;
-
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -20,40 +16,42 @@ import java.net.*;
 import java.io.*;
 
 public class Main extends Application {
-    Button getButton;
-    Button setButton;
-    Button exitButton;
-    Button updateSingleButton;
-    Button addButton;
-    Button deleteButton;
+    String sysPassword;
 
-    Label label;
-    StackPane layout;
-    TableView table;
-    TextField tf_name;
-    TextField tf_quantity;
-    TextField tf_price;
-    TextField tf_url;
-    TextField tf_desc;
-    TextField tf_qr;
-    PasswordField tf_password;
+    private Button getButton;
+    private Button setButton;
+    private Button exitButton;
+    private Button updateSingleButton;
+    private Button addButton;
+    private Button deleteButton;
 
-    Integer idWidth = 170;
-    Integer nameWidth = 150;
-    Integer quantityWidth = 60;
-    Integer priceWidth = 50;
-    Integer urlWidth = 300;
-    Integer descWidth = 200;
-    Integer qrWidth = 150;
-    Integer totalWidth = 4+idWidth+nameWidth+quantityWidth+priceWidth+urlWidth+descWidth+qrWidth;
+    private Label label;
+    private StackPane layout;
+    private TableView table;
+    private TextField tf_name;
+    private TextField tf_quantity;
+    private TextField tf_price;
+    private TextField tf_url;
+    private TextField tf_desc;
+    private TextField tf_qr;
+    private PasswordField tf_password;
 
-    ObservableList<Product> data =
+    private Integer idWidth = 170;
+    private Integer nameWidth = 150;
+    private Integer quantityWidth = 60;
+    private Integer priceWidth = 50;
+    private Integer urlWidth = 300;
+    private Integer descWidth = 200;
+    private Integer qrWidth = 150;
+    private Integer totalWidth = 4+idWidth+nameWidth+quantityWidth+priceWidth+urlWidth+descWidth+qrWidth;
+
+    private ObservableList<Product> data =
             FXCollections.observableArrayList();
 
     @Override
     public void start(Stage primaryStage) {
-        //Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
-        primaryStage.setTitle("scrubITadmin");
+        sysPassword = "hej";
+        primaryStage.setTitle("scrubIT admin");
 
         table = new TableView();
         TableView<Product> table = new TableView<>();
@@ -66,12 +64,17 @@ public class Main extends Application {
                 new PropertyValueFactory<Product,String>("Name")
         );
         tc_name.setCellFactory(TextFieldTableCell.forTableColumn());
-        tc_name.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
-            @Override
-            public void handle(CellEditEvent<Product,String> t) {
-                ((Product) t.getTableView().getItems().get(
-                        t.getTablePosition().getRow())
-                ).setName(t.getNewValue());
+        tc_name.setOnEditCommit(t -> {
+            if (checkPassword()) {
+                try {
+                    (t.getTableView().getItems().get(
+                            t.getTablePosition().getRow())
+                    ).setName(t.getNewValue());
+                    doUpdateRow(table.getSelectionModel().getSelectedIndex());
+                    doGetData();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
         });
 
@@ -85,89 +88,116 @@ public class Main extends Application {
         TableColumn<Product, String> tc_price = new TableColumn<>("Price");
         tc_price.setPrefWidth(priceWidth);
         tc_price.setCellValueFactory(
-                new PropertyValueFactory<Product,String>("Price")
+                new PropertyValueFactory<>("Price")
         );
         tc_price.setCellFactory(TextFieldTableCell.forTableColumn());
-        tc_price.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
-            @Override
-            public void handle(CellEditEvent<Product,String> t) {
-                try{
-                    int intTest = Integer.parseInt(t.getNewValue());
-                    ((Product) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                    ).setPrice(t.getNewValue());
-                } catch (NumberFormatException e) {
-                    label.setText("Price has to be integer");
+        tc_price.setOnEditCommit(t -> {
+            try {
+                int intTest = Integer.parseInt(t.getNewValue());
+                (t.getTableView().getItems().get(t.getTablePosition().getRow())).setQuantity(t.getNewValue());
+                if (checkPassword()) {
+                    try {
+                        (t.getTableView().getItems().get(t.getTablePosition().getRow())).setPrice(t.getNewValue());
+                        doUpdateRow(table.getSelectionModel().getSelectedIndex());
+                        doGetData();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
                 }
+            } catch (NumberFormatException e) {
+                label.setText("Price has to be integer");
             }
         });
 
         TableColumn<Product, String> tc_quantity = new TableColumn<>("Quantity");
         tc_quantity.setPrefWidth(quantityWidth);
         tc_quantity.setCellValueFactory(
-                new PropertyValueFactory<Product,String>("Quantity")
+                new PropertyValueFactory<>("Quantity")
         );
         tc_quantity.setCellFactory(TextFieldTableCell.forTableColumn());
-        tc_quantity.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
-            @Override
-            public void handle(CellEditEvent<Product,String> t) {
-                try{
-                    int intTest = Integer.parseInt(t.getNewValue());
-                    ((Product) t.getTableView().getItems().get(
-                            t.getTablePosition().getRow())
-                    ).setQuantity(t.getNewValue());
-                } catch (NumberFormatException e) {
-                    label.setText("Quantity has to be integer");
+        tc_quantity.setOnEditCommit(t -> {
+            try {
+                int intTest = Integer.parseInt(t.getNewValue());
+                (t.getTableView().getItems().get(t.getTablePosition().getRow())
+                ).setQuantity(t.getNewValue());
+                if (checkPassword()) {
+                    try {
+                        (t.getTableView().getItems().get(t.getTablePosition().getRow())).setQuantity(t.getNewValue());
+                        doUpdateRow(table.getSelectionModel().getSelectedIndex());
+                        doGetData();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
                 }
+            } catch (NumberFormatException e) {
+                label.setText("Quantity has to be integer");
             }
         });
 
         TableColumn<Product, String> tc_desc = new TableColumn<>("Desc");
         tc_desc.setPrefWidth(descWidth);
         tc_desc.setCellValueFactory(
-                new PropertyValueFactory<Product,String>("Desc")
+                new PropertyValueFactory<>("Desc")
         );
         tc_desc.setCellFactory(TextFieldTableCell.forTableColumn());
-        tc_desc.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
-            @Override
-            public void handle(CellEditEvent<Product,String> t) {
-                ((Product) t.getTableView().getItems().get(
-                        t.getTablePosition().getRow())
-                ).setDesc(t.getNewValue());
+        tc_desc.setOnEditCommit(t -> {
+            if (checkPassword()) {
+                try {
+                    (t.getTableView().getItems().get(
+                            t.getTablePosition().getRow())
+                    ).setDesc(t.getNewValue());
+                    doUpdateRow(table.getSelectionModel().getSelectedIndex());
+                    doGetData();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
         });
-
 
         TableColumn<Product, String> tc_qr = new TableColumn<>("Qr-Code");
         tc_qr.setPrefWidth(qrWidth);
         tc_qr.setCellValueFactory(
-                new PropertyValueFactory<Product,String>("qr")
+                new PropertyValueFactory<>("qr")
         );
         tc_qr.setCellFactory(TextFieldTableCell.forTableColumn());
-        tc_qr.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
-            @Override
-            public void handle(CellEditEvent<Product,String> t) {
-                ((Product) t.getTableView().getItems().get(
-                        t.getTablePosition().getRow())
-                ).setQr(t.getNewValue());
+        tc_qr.setOnEditCommit(t -> {
+            try {
+                int intTest = Integer.parseInt(t.getNewValue());
+                (t.getTableView().getItems().get(t.getTablePosition().getRow())
+                ).setQuantity(t.getNewValue());
+                if (checkPassword()) {
+                    try {
+                        (t.getTableView().getItems().get(t.getTablePosition().getRow())).setQr(t.getNewValue());
+                        doUpdateRow(table.getSelectionModel().getSelectedIndex());
+                        doGetData();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                }
+            } catch (NumberFormatException e) {
+                label.setText("QR has to be integer");
             }
         });
 
         TableColumn<Product, String> tc_url = new TableColumn<>("Url");
         tc_url.setPrefWidth(urlWidth);
         tc_url.setCellValueFactory(
-                new PropertyValueFactory<Product,String>("Url")
+                new PropertyValueFactory<>("Url")
         );
         tc_url.setCellFactory(TextFieldTableCell.forTableColumn());
-        tc_url.setOnEditCommit( new EventHandler<CellEditEvent<Product,String>>() {
-            @Override
-            public void handle(CellEditEvent<Product,String> t) {
-                ((Product) t.getTableView().getItems().get(
-                        t.getTablePosition().getRow())
-                ).setUrl(t.getNewValue());
+        tc_url.setOnEditCommit(t -> {
+            if (checkPassword()) {
+                try {
+                    (t.getTableView().getItems().get(
+                            t.getTablePosition().getRow())
+                    ).setUrl(t.getNewValue());
+                    doUpdateRow(table.getSelectionModel().getSelectedIndex());
+                    doGetData();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
         });
-
 
         table.getColumns().addAll(tc_id, tc_name, tc_price, tc_quantity, tc_desc, tc_url, tc_qr);
         table.setItems(data);
@@ -185,7 +215,7 @@ public class Main extends Application {
 
         getButton = new Button();
         getButton.setMinWidth(100);
-        getButton.setText("Fetch DB");
+        getButton.setText("Refresh");
         getButton.setTranslateX(label.getTranslateX()+label.getMinWidth()/2+getButton.getMinWidth()/2);
         getButton.setTranslateY(label.getTranslateY());
         getButton.setOnAction(e -> {
@@ -256,12 +286,12 @@ public class Main extends Application {
 
         tf_password = new PasswordField();
         tf_password.setMaxWidth(setButton.getMinWidth());
-        tf_password.setTranslateY(setButton.getTranslateY()+26);
+        tf_password.setTranslateY(setButton.getTranslateY());
         tf_password.setTranslateX(setButton.getTranslateX());
         tf_password.setPromptText("password");
 
         deleteButton = new Button();
-        deleteButton.setText("Delete row");
+        deleteButton.setText("Remove item");
         deleteButton.setMinWidth(setButton.getMinWidth());
         deleteButton.setTranslateX(exitButton.getTranslateX());
         deleteButton.setTranslateY(setButton.getTranslateY()-26);
@@ -270,9 +300,7 @@ public class Main extends Application {
             if (selectedItem==null) {
                 label.setText("Choose row");
             }
-            else {
-                //table.getItems().remove(selectedItem);
-                label.setText("Removed row");
+            else if (checkPassword()) {
                 try {
                     doDeleteRow(table.getSelectionModel().getSelectedIndex());
                     doGetData();
@@ -283,22 +311,23 @@ public class Main extends Application {
         });
 
         addButton = new Button();
-        addButton.setText("Add row");
+        addButton.setText("Add item");
         addButton.setMinWidth(getButton.getMinWidth());
         addButton.setTranslateX(getButton.getTranslateX());
         addButton.setTranslateY(getButton.getTranslateY()-26);
         addButton.setOnAction(e -> {
-        label.setText("Added row");
-            try {
-                doInsertOneRow();
-                doGetData();
-            } catch (IOException e1) {
-                e1.printStackTrace();
+            if (checkPassword()) {
+                try {
+                    doInsertOneRow();
+                    doGetData();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
-        });
+          });
 
         updateSingleButton = new Button();
-        updateSingleButton.setText("Update one row");
+        updateSingleButton.setText("Update item");
         updateSingleButton.setMinWidth(exitButton.getMinWidth());
 
         updateSingleButton.setTranslateX(setButton.getTranslateX());
@@ -308,17 +337,11 @@ public class Main extends Application {
             if (selectedItem==null) {
                 label.setText("Choose row");
             }
-            else {
-                if (tf_password.getText().equals("hej")) {
-                    label.setText("Row updated");
-                    try {
-                        doUpdateRow(table.getSelectionModel().getSelectedIndex());
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    }
-                }
-                else {
-                    label.setText("Wrong Password");
+            else if (checkPassword()) {
+                 try {
+                    doUpdateRow(table.getSelectionModel().getSelectedIndex());
+                } catch (IOException e1) {
+                    e1.printStackTrace();
                 }
             }
         });
@@ -326,9 +349,7 @@ public class Main extends Application {
         layout = new StackPane();
         layout.getChildren().addAll(updateSingleButton, deleteButton, addButton,tf_name,tf_price,tf_quantity,tf_desc,tf_url,tf_qr,getButton,exitButton,label,table,tf_password);
         layout.setAlignment(Pos.CENTER);
-
         Scene root = new Scene(layout, totalWidth, 700);
-
         primaryStage.setScene(root);
         primaryStage.setResizable(false);
         primaryStage.show();
@@ -340,10 +361,17 @@ public class Main extends Application {
 
     }
 
-    private void connectToUrlSendObj(String url, String stringToSend,String Method) throws IOException  {
-        System.out.println("URL: " + url);
-        System.out.println("Params: " + stringToSend);
+    private boolean checkPassword() {
+        if (tf_password.getText().equals(sysPassword)) {
+            System.out.println("Password accepted");
+            return true;
+        }
+        label.setText("Password incorrect");
+        System.out.println("Password rejected");
+        return false;
+    }
 
+    private void connectToUrlSendObj(String url, String stringToSend,String Method) throws IOException  {
         URL conUrl = new URL(url);
         HttpURLConnection con = (HttpURLConnection) conUrl.openConnection();
         con.setDoOutput(true);
@@ -351,91 +379,67 @@ public class Main extends Application {
         con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
         OutputStream os = con.getOutputStream();
-
         BufferedWriter writer = new BufferedWriter(
                 new OutputStreamWriter(os, "UTF-8"));
         writer.write(stringToSend);
-
         writer.flush();
         writer.close();
         os.close();
         con.connect();
 
         int responseCode = con.getResponseCode();
-
         if (responseCode==200 || responseCode==201) {
             label.setText("Request succeeded");
         }
         else {
             label.setText("Connection unsuccessful, Response: " +  responseCode);
         }
-        System.out.println("Repsonse code: " + responseCode);
     }
 
     private void doInsertOneRow() throws IOException {
-        System.out.println("inserting row");
-
         try {
             int stockInt = Integer.parseInt(tf_qr.getText());
             int priceInt = Integer.parseInt(tf_price.getText());
             int qrInt = Integer.parseInt(tf_qr.getText());
-
+            String stringToSend = "qr=" + tf_qr.getText() + "&name=" + tf_name.getText() + "&description=" + tf_desc.getText() +
+                    "&price=" + tf_price.getText() + "&quantity=" + tf_quantity.getText() + "&url=" + tf_url.getText();
+            String url = "http://scrubit.herokuapp.com/api/insert";
+            connectToUrlSendObj(url, stringToSend,"POST");
         } catch (NumberFormatException e) {
             label.setText("Price, Stock and Qr has to be integer");
+            System.out.println("Price, Stock and Qr has to be integer");
         }
-        String stringToSend = "qr=" + tf_qr.getText() + "&name=" + tf_name.getText() + "&description=" + tf_desc.getText() +
-                "&price=" + tf_price.getText() + "&quantity=" + tf_quantity.getText() + "&url=" + tf_url.getText();
-
-        String testUrl = "http://ptsv2.com/t/020s2-1519735531/post";
-        String url = "http://scrubit.herokuapp.com/api/insert";
-
-        connectToUrlSendObj(url, stringToSend,"POST");
     }
 
     private void doDeleteRow(Integer rowNumber) throws IOException {
-        System.out.println("deleting row #" + rowNumber);
-        System.out.println("id=" + data.get(rowNumber).getId());
         String stringToSend = "_id=" + data.get(rowNumber).getId();
-
         String testUrl = "http://ptsv2.com/t/020s2-1519735531/post";
         String url = "http://scrubit.herokuapp.com/api/delete";
-
         connectToUrlSendObj(url,stringToSend,"POST");
     }
 
     private void doUpdateRow(Integer rowNumber) throws IOException  {
-        System.out.println("Updating row # " + rowNumber);
-
         String stringToSend = "_id=" + data.get(rowNumber).getId() + "&qr=" + data.get(rowNumber).getQr() + "&name=" + data.get(rowNumber).getName() + "&description=" +
                 data.get(rowNumber).getDesc() + "&price=" + data.get(rowNumber).getPrice() + "&quantity=" +
                 data.get(rowNumber).getQuantity() + "&url=" + data.get(rowNumber).getUrl();
-        System.out.println(stringToSend);
-
-        String testUrl = "http://ptsv2.com/t/267mw-1519662159/post";
         String url = "http://scrubit.herokuapp.com/api/update";
-
         connectToUrlSendObj(url,stringToSend,"POST");
     }
 
     private void doGetData() throws IOException {
-        System.out.println("Fetching whole DB");
-        label.setText("Downloading data...");
-
+        System.out.println("Fetching from DB");
         String urlToJson = "http://scrubit.herokuapp.com/api/get-all";
-
         URL obj = new URL(urlToJson);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("GET");
         int responseCode = con.getResponseCode();
-
         if (responseCode==200) {
             data.clear();
-            label.setText("Request succeeded");
+            //label.setText("Request succeeded");
         }
         else {
             label.setText("Connection unsuccessful, Response: " +  responseCode);
         }
-
         BufferedReader in = new BufferedReader(
                 new InputStreamReader(con.getInputStream()));
         String inputLine;
@@ -445,7 +449,6 @@ public class Main extends Application {
             response.append(inputLine);
             response.append("\n");
         }
-        System.out.println(response);
         JSONArray jsonObj = new JSONArray(response.toString());
 
         for (int i=0;i<jsonObj.length();i++) {
@@ -460,7 +463,6 @@ public class Main extends Application {
                 Product newProd = new Product(id,name,stock,price,qr,url,desc);
                 data.add(newProd);
             } catch (JSONException e1) {
-                System.out.println(e1);
                 System.out.println("Some objects did not have all attributes");
             }
         }
@@ -468,9 +470,7 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
-
         launch(args);
-
     }
 }
 
