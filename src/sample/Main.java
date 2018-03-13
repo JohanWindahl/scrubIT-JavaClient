@@ -48,7 +48,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        sysPassword = "hej";
+        sysPassword = "";
         primaryStage.setTitle("scrubIT admin");
 
         table = new TableView();
@@ -347,7 +347,7 @@ public class Main extends Application {
         }
 
     }
-
+    /*
     private boolean checkPassword() {
         if (tf_password.getText().equals(sysPassword)) {
             System.out.println("Password accepted");
@@ -357,12 +357,19 @@ public class Main extends Application {
         System.out.println("Password rejected");
         return false;
     }
+    */
+    private boolean checkPassword() {
+        return true;
+    }
 
     private void connectToUrlSendObj(String url, String stringToSend,String Method) throws IOException  {
         URL conUrl = new URL(url);
         HttpURLConnection con = (HttpURLConnection) conUrl.openConnection();
         con.setDoOutput(true);
         con.setRequestMethod(Method);
+        String pw = tf_password.getText();
+        System.out.println(pw);
+        con.setRequestProperty("authorization", pw);
         con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
         OutputStream os = con.getOutputStream();
@@ -409,8 +416,9 @@ public class Main extends Application {
 
     private void doDeleteRow(Integer rowNumber) throws IOException {
         String stringToSend = "_id=" + data.get(rowNumber).getId();
-        String url = "http://scrubit.herokuapp.com/api/delete";
 
+        String url = "http://scrubit.herokuapp.com/api/delete";
+        //String url2 = "http://ptsv2.com/t/r62z8-1520945857/post";
         connectToUrlSendObj(url,stringToSend,"POST");
     }
 
@@ -475,7 +483,6 @@ public class Main extends Application {
         launch(args);
     }
 }
-
 
 
 
