@@ -11,7 +11,6 @@ This is the Java-admin-client
 ![dm](https://github.com/JohanWindahl/scrubIT-JavaClient/blob/master/img/example.gif)
 
 
-
 This is a snapshot of the webstore:
 
 ![dm](https://github.com/JohanWindahl/scrubIT-JavaClient/blob/master/img/store1.png)
