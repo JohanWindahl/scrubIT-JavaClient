@@ -3,7 +3,6 @@ A part of the project in the course Platform-Spanning Systems - 1DL620
 
 ** Language: Java **
 
-
 **Detalis:** A admin-client for managing the goods in our local kiosk (www.scrubit.herokuapp.com)
 
 	main.java to run the scrubIT-JavaClient
